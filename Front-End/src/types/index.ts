@@ -194,7 +194,8 @@ export interface GroupConversation {
 export interface GroupMessage {
   id: string;
   senderId: string;
-  senderName: string;
+  firstname: string;
+  lastname: string;
   senderAvatar: string;
   text: string;
   time: string;

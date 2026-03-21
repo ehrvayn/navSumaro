@@ -12,6 +12,7 @@ import { useMessages } from "../../context/MessageContext";
 import DiscoverGroups from "./DiscoverGroup";
 import { FaLock } from "react-icons/fa6";
 import { BsGlobeAmericasFill } from "react-icons/bs";
+import { GroupConversation } from "../../types";
 
 const TABS = ["Posts", "Chats", "Members", "Discover"];
 
@@ -34,17 +35,88 @@ const GroupStudyPage: React.FC = () => {
     getGroupPosts,
     getGroupPostsById,
   } = usePosts();
-  const { groupConversations } = useMessages();
+  const { groupConversations, setGroupConversations, socket } = useMessages();
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
+  const [groupMessages, setGroupMessages] = useState<any[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [groupUnread, setGroupUnread] = useState<Record<string, number>>({});
 
   const joinedGroups = groups.filter((g) => g.joined);
   const hasJoined = joinedGroups.length > 0;
 
-  const currentChat = useMemo(() => {
-    return groupConversations.find((c) => c.id === activeGroupId);
-  }, [activeGroupId, groupConversations]);
+  useEffect(() => {
+    const handleGroupMessage = (newMessage: any) => {
+      if (newMessage.groupId === activeGroupId) {
+        setGroupMessages((prev) => {
+          const exists = prev.some((msg) => msg.id === newMessage.id);
+          if (exists) {
+            return prev;
+          }
+          return [...prev, newMessage];
+        });
+      } else {
+        // Increment unread for other groups
+        setGroupUnread((prev) => ({
+          ...prev,
+          [newMessage.groupId]: (prev[newMessage.groupId] || 0) + 1,
+        }));
+      }
+    };
+
+    socket.on("receive_group_message", handleGroupMessage);
+    return () => {
+      socket.off("receive_group_message", handleGroupMessage);
+    };
+  }, [socket, activeGroupId]);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const response = await fetch(
+          `http://localhost:5000/group/messages/get/${activeGroupId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setGroupConversations((prev) => [
+            ...prev.filter((c) => c.id !== activeGroupId),
+            {
+              id: activeGroupId,
+              messages: data.data || [],
+              title: activeGroup?.name || "",
+              avatar: activeGroup?.emoji || "",
+              participants: activeGroup?.members || [],
+              isGroup: true,
+              adminId:
+                activeGroup?.members.find((m) => m.isAdmin)?.user.id ??
+                activeGroupId,
+              lastMessage: "",
+              lastTime: "",
+              unread: 0,
+            } as GroupConversation,
+          ]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch messages:", error);
+      }
+    };
+
+    if (activeGroupId) {
+      fetchMessages();
+    }
+  }, [activeGroupId, activeGroup]);
 
   const handleTagClick = (tag: string) =>
     setActiveTag((prev) => (prev === tag || tag === "" ? null : tag));
@@ -65,6 +137,40 @@ const GroupStudyPage: React.FC = () => {
       getGroupPosts(activeGroupId);
     }
   }, [activeGroupId]);
+
+  useEffect(() => {
+    if (activeTab === "Chats" && activeGroupId) {
+      fetchGroupMessages(activeGroupId);
+      // Clear unread when opening chats
+      setGroupUnread((prev) => ({
+        ...prev,
+        [activeGroupId]: 0,
+      }));
+    }
+  }, [activeTab, activeGroupId]);
+
+  const fetchGroupMessages = async (groupId: string) => {
+    setLoadingMessages(true);
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const response = await fetch(
+        `http://localhost:5000/group/messages/get/${groupId}`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setGroupMessages(data.data ?? []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch group messages:", error);
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
 
   const filtered = getGroupPostsById(activeGroupId).filter((p) => {
     const matchSearch =
@@ -161,15 +267,30 @@ const GroupStudyPage: React.FC = () => {
 
           {hasJoined && (
             <div className="flex gap-1 border-b border-white/[0.07]">
-              {TABS.map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 text-sm border-b-2 transition-all ${activeTab === tab ? "border-orange-500 text-orange-400 font-bold" : "border-transparent text-slate-500"}`}
-                >
-                  {tab}
-                </button>
-              ))}
+              {TABS.map((tab) => {
+                const totalUnread =
+                  tab === "Chats"
+                    ? Object.values(groupUnread).reduce(
+                        (sum, count) => sum + count,
+                        0,
+                      )
+                    : 0;
+
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-4 py-2 text-sm border-b-2 transition-all relative ${activeTab === tab ? "border-orange-500 text-orange-400 font-bold" : "border-transparent text-slate-500"}`}
+                  >
+                    {tab}
+                    {totalUnread > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                        {totalUnread}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -189,10 +310,25 @@ const GroupStudyPage: React.FC = () => {
             </div>
           )}
 
-          {hasJoined && activeTab === "Chats" && currentChat && (
-            <GroupChat key={activeGroupId} conversation={currentChat} />
+          {hasJoined && activeTab === "Chats" && activeGroup && (
+            <GroupChat
+              key={activeGroupId}
+              conversation={{
+                id: activeGroupId,
+                title: activeGroup.name,
+                avatar: activeGroup.emoji,
+                participants: activeGroup.members,
+                messages: groupMessages,
+                isGroup: true,
+                adminId:
+                  activeGroup.members.find((m) => m.isAdmin)?.user.id ??
+                  activeGroupId,
+                lastMessage: activeGroup.name,
+                lastTime: new Date().toLocaleTimeString(),
+                unread: 0,
+              }}
+            />
           )}
-
           {hasJoined && activeTab === "Members" && (
             <div className="absolute inset-0 overflow-y-auto p-3 sm:p-5 overscroll-contain">
               <GroupMembers members={activeGroup?.members ?? []} />

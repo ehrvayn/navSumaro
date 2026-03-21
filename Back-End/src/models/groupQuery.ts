@@ -92,10 +92,16 @@ const groupQuery = {
 
   getMessages: (groupId: string) => ({
     query: `
-      SELECT * FROM group_messages
-      WHERE "groupId" = $1
-      ORDER BY "createdAt" ASC
-    `,
+    SELECT 
+      gm.*,
+      u.firstname,
+      u.lastname,
+      u.avatar
+    FROM group_messages gm
+    LEFT JOIN users u ON u.id = gm."senderId"
+    WHERE gm."groupId" = $1
+    ORDER BY gm."createdAt" ASC
+  `,
     values: [groupId],
   }),
 

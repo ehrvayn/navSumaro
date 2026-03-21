@@ -101,12 +101,12 @@ io.on("connection", (socket) => {
         }
 
         socket.join(realThreadId);
-        
+
         const recipientSocketId = userSockets.get(data.recipientId);
         if (recipientSocketId) {
           io.to(recipientSocketId).emit("receive_message", messagePayload);
         }
-        
+
         socket.emit("receive_message", messagePayload);
 
         io.emit("thread_updated", {
@@ -130,8 +130,50 @@ io.on("connection", (socket) => {
     }
     console.log("User disconnected:", socket.id);
   });
+
+  // group //
+  socket.on("send_group_message", async (data) => {
+    try {
+      const { groupId, text, senderId } = data;
+
+      const senderResult = await query(
+        `SELECT firstname, lastname, avatar FROM users WHERE id = $1`,
+        [senderId],
+      );
+      const sender = senderResult.rows[0];
+      const membersResult = await query(
+        `SELECT user_id FROM group_members WHERE group_id = $1`,
+        [groupId],
+      );
+
+      const members = membersResult.rows.map((row) => row.user_id);
+
+      socket.join(groupId);
+
+      const messagePayload = {
+        id: data.id,
+        groupId,
+        senderId,
+        text,
+        firstname: sender?.firstname,
+        lastname: sender?.lastname,
+        senderAvatar: sender?.avatar || senderId?.[0] || "?",
+        createdAt: data.createdAt,
+        seenBy: [],
+      };
+
+      members.forEach((memberId) => {
+        const memberSocketId = userSockets.get(memberId);
+        if (memberSocketId) {
+          io.to(memberSocketId).emit("receive_group_message", messagePayload);
+        }
+      });
+
+      socket.emit("receive_group_message", messagePayload);
+    } catch (error) {}
+  });
 });
 
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-}); 
+});
