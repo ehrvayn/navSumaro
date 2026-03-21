@@ -5,6 +5,8 @@ import { editGroup } from "../services/group/editGroup.js";
 import { joinGroup } from "../services/group/joinGroup.js";
 import { leaveGroup } from "../services/group/leaveGroup.js";
 import { kickMember } from "../services/group/kickMember.js";
+import sendMessage from "../services/group/sendMessage.js";
+import { getMessages } from "../services/group/getMessages.js";
 
 export const createGroupController = async (req: Request, res: Response) => {
   const currentUser = (req as any).user;
@@ -83,5 +85,42 @@ export const kickMemberController = async (req: Request, res: Response) => {
   const result = await kickMember(groupId, { id: memberId }, currentUser);
 
   if (!result.success) return res.status(400).json(result);
+  res.status(200).json(result);
+};
+
+export const sendMessageController = async (req: Request, res: Response) => {
+  const senderId = (req as any).user.id;
+  const { groupId, text } = req.body;
+
+  if (!groupId || !text) {
+    return res
+      .status(400)
+      .json({ success: false, message: "groupId and text are required!" });
+  }
+
+  const result = await sendMessage(groupId, senderId, text);
+
+  if (!result.success) {
+    return res.status(400).json({ success: false, message: result.message });
+  }
+
+  res.status(201).json(result);
+};
+
+export const getMessagesController = async (req: Request, res: Response) => {
+  const { groupId } = req.params;
+
+  if (!groupId) {
+    return res
+      .status(400)
+      .json({ success: false, message: "groupId is required!" });
+  }
+
+  const result = await getMessages(groupId);
+
+  if (!result.success) {
+    return res.status(400).json(result);
+  }
+
   res.status(200).json(result);
 };

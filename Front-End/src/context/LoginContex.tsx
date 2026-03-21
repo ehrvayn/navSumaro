@@ -48,6 +48,7 @@ export const LoginProvider: React.FC<{ children: React.ReactNode }> = ({
         setEmail("");
         setPassword("");
         await refreshUser();
+        setActivePage("home")
       } else {
         alert(data.message || "Login failed!");
       }

@@ -11,31 +11,36 @@ interface GroupChatProps {
 
 const GroupChat: React.FC<GroupChatProps> = ({ conversation }) => {
   const [message, setMessage] = useState("");
-  const { sendGroupMessage } = useMessages();
+  const [messages, setLocalMessages] = useState<GroupMessage[]>(conversation.messages);
   const { currentUser } = useCurrentUser();
+  const { socket } = useMessages();
   const lastChat = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     lastChat.current?.scrollIntoView({ behavior: "smooth" });
-  }, [conversation.messages]);
+  }, [messages]);
+
+  useEffect(() => {
+    const handleGroupMessage = (newMessage: any) => {
+      setLocalMessages((prev) => [...prev, newMessage]);
+    };
+
+    socket.on("receive_group_message", handleGroupMessage);
+
+    return () => {
+      socket.off("receive_group_message", handleGroupMessage);
+    };
+  }, [socket]);
 
   const handleSend = () => {
     if (!message.trim() || !currentUser) return;
 
-    const newMessage: GroupMessage = {
-      id: `gmsg-${Date.now()}`,
-      senderId: currentUser.id,
-      senderName: currentUser.firstname,
-      senderAvatar: currentUser.avatar,
+    socket.emit("send_group_message", {
+      groupId: conversation.id,
       text: message,
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      seenBy: [currentUser.id],
-    };
+      senderId: currentUser.id,
+    });
 
-    sendGroupMessage(conversation.id, newMessage);
     setMessage("");
   };
 
@@ -44,11 +49,11 @@ const GroupChat: React.FC<GroupChatProps> = ({ conversation }) => {
   return (
     <div className="flex flex-col md:h-full h-[calc(100%-60px)] bg-base overflow-hidden overscroll-none touch-none">
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 overscroll-contain touch-pan-y">
-        {conversation.messages.map((msg, index) => {
+        {messages.map((msg, index) => {
           const isMe = msg.senderId === currentUser.id;
           const showName =
             index === 0 ||
-            conversation.messages[index - 1].senderId !== msg.senderId;
+            messages[index - 1].senderId !== msg.senderId;
           return (
             <div
               key={msg.id}

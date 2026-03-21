@@ -36,23 +36,11 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
   const headerName = isGroup
     ? conversation.title
     : `${conversation.participant?.firstname || conversation.firstname} ${conversation.participant?.lastname || conversation.lastname}`;
-  const headerAvatar = conversation.participant?.avatar || conversation.avatar;
   const isOnline =
     !isGroup && (conversation.participant?.isOnline || conversation.isOnline);
 
   useEffect(() => {
     socket.emit("join_conversation", threadIdRef.current);
-
-    const handleMessage = (newMessage: any) => {
-      if (
-        threadIdRef.current.startsWith("conv-") &&
-        newMessage.threadId &&
-        !newMessage.threadId.startsWith("conv-")
-      ) {
-        threadIdRef.current = newMessage.threadId;
-      }
-      setLocalMessages((prev) => [...prev, newMessage]);
-    };
 
     const handleThreadAssigned = ({
       tempId,
@@ -67,15 +55,29 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
       }
     };
 
-    socket.off("receive_message");
-    socket.off("thread_id_assigned");
-
-    socket.on("receive_message", handleMessage);
     socket.on("thread_id_assigned", handleThreadAssigned);
 
     return () => {
-      socket.off("receive_message", handleMessage);
       socket.off("thread_id_assigned", handleThreadAssigned);
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    const handleMessage = (newMessage: any) => {
+      if (
+        threadIdRef.current.startsWith("conv-") &&
+        newMessage.threadId &&
+        !newMessage.threadId.startsWith("conv-")
+      ) {
+        threadIdRef.current = newMessage.threadId;
+      }
+      setLocalMessages((prev) => [...prev, newMessage]);
+    };
+
+    socket.on("receive_message", handleMessage);
+
+    return () => {
+      socket.off("receive_message", handleMessage);
     };
   }, [socket]);
 
@@ -101,8 +103,7 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
       }
     };
 
-    const timer = setTimeout(markRead, 1000);
-    return () => clearTimeout(timer);
+    markRead();
   }, [conversation.id]);
 
   useEffect(() => {
@@ -195,8 +196,8 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
           <div className="relative inline-flex">
             <Avatar
               initials={
-                (conversation.participant?.firstname?.[0] ?? "") +
-                (conversation.participant?.lastname?.[0] ?? "")
+                (conversation.firstname?.[0] ?? "") +
+                (conversation.lastname?.[0] ?? "")
               }
               size="xs"
             />
@@ -263,7 +264,15 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
                 key={m.id}
                 className={`flex gap-2 items-end ${isMe ? "flex-row-reverse" : ""}`}
               >
-                {!isMe && <Avatar initials={headerAvatar} size="xs" />}
+                {!isMe && (
+                  <Avatar
+                    initials={
+                      (conversation.firstname?.[0] ?? "") +
+                      (conversation.lastname?.[0] ?? "")
+                    }
+                    size="xs"
+                  />
+                )}
                 <div
                   className={`px-3 py-2 text-xs rounded-2xl max-w-[70%] ${isMe ? "bg-orange-600 text-white rounded-br-none" : "bg-white/[0.05] border border-white/10 text-slate-200 rounded-bl-none"}`}
                 >

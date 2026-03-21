@@ -81,6 +81,50 @@ const groupQuery = {
     query: `DELETE FROM group_members WHERE group_id = $1 AND user_id = $2`,
     values: [groupId, userId],
   }),
+  sendMessage: (groupId: string, senderId: string, text: string) => ({
+    query: `
+      INSERT INTO group_messages ("groupId", "senderId", text)
+      VALUES ($1, $2, $3)
+      RETURNING *
+    `,
+    values: [groupId, senderId, text],
+  }),
+
+  getMessages: (groupId: string) => ({
+    query: `
+      SELECT * FROM group_messages
+      WHERE "groupId" = $1
+      ORDER BY "createdAt" ASC
+    `,
+    values: [groupId],
+  }),
+
+  markAsRead: (groupId: string, userId: string) => ({
+    query: `
+      INSERT INTO group_unread ("groupId", "userId", unread)
+      VALUES ($1, $2, 0)
+      ON CONFLICT ("groupId", "userId") 
+      DO UPDATE SET unread = 0
+    `,
+    values: [groupId, userId],
+  }),
+
+  incrementUnread: (groupId: string) => ({
+    query: `
+      UPDATE group_unread
+      SET unread = unread + 1
+      WHERE "groupId" = $1
+    `,
+    values: [groupId],
+  }),
+
+  getGroupUnread: (groupId: string, userId: string) => ({
+    query: `
+      SELECT unread FROM group_unread
+      WHERE "groupId" = $1 AND "userId" = $2
+    `,
+    values: [groupId, userId],
+  }),
 };
 
 export default groupQuery;

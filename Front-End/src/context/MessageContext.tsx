@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useRef } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { Message, GroupConversation, GroupMessage } from "../types";
 import { mockGroupConversations } from "../data/mockGroupConversation";
 import { io, Socket } from "socket.io-client";
@@ -10,7 +17,8 @@ interface MessageContextType {
   Messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   groupConversations: GroupConversation[];
-  setGroupConversations: React.Dispatch<React.SetStateAction<GroupConversation[]>>;
+  setGroupConversations: React.Dispatch<React.SetStateAction<GroupConversation[]>
+  >;
   selectedMessage: ChatSession | null;
   setSelectedMessageId: React.Dispatch<React.SetStateAction<string | null>>;
   showCreateMessage: boolean;
@@ -26,17 +34,47 @@ interface MessageContextType {
 
 const MessageContext = createContext<MessageContextType | null>(null);
 
-export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [Messages, setMessages] = useState<Message[]>([]);
-  const [groupConversations, setGroupConversations] = useState<GroupConversation[]>(mockGroupConversations);
+  const [groupConversations, setGroupConversations] = useState
+    <GroupConversation[]
+  >(mockGroupConversations);
   const [showCreateMessage, setShowCreateMessage] = useState(false);
-  const [selectedConversation, setSelectedConversation] = useState<ChatSession | null>(null);
-  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+  const [selectedConversation, setSelectedConversation] =
+    useState<ChatSession | null>(null);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
+    null,
+  );
   const [threads, setThreads] = useState<any[]>([]);
   const socket = useMemo(() => io("http://localhost:5000"), []);
   const { currentUser } = useCurrentUser();
   const currentUserRef = useRef(currentUser);
   const selectedConversationRef = useRef(selectedConversation);
+
+  useEffect(() => {
+    if (currentUser?.id) {
+      socket.emit("user_connected", currentUser.id);
+    }
+  }, [currentUser?.id, socket]);
+
+  useEffect(() => {
+    const handleNewThread = (threadData: any) => {
+      setThreads((prev) => {
+        if (prev.some((t) => t.id === threadData.id)) {
+          return prev;
+        }
+        return [threadData, ...prev];
+      });
+    };
+
+    socket.on("new_thread", handleNewThread);
+
+    return () => {
+      socket.off("new_thread", handleNewThread);
+    };
+  }, [socket]);
 
   useEffect(() => {
     currentUserRef.current = currentUser;
@@ -75,25 +113,32 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     const handleReceiveMessage = (newMessage: any) => {
       const isMine = newMessage.senderId === currentUserRef.current?.id;
-      const isCurrentlyOpen = (selectedConversationRef.current as any)?.id === newMessage.threadId;
+      const isCurrentlyOpen =
+        (selectedConversationRef.current as any)?.id === newMessage.threadId;
 
       setThreads((prev) => {
         const threadExists = prev.some((t) => t.id === newMessage.threadId);
 
         if (!threadExists) {
           fetchThreads();
+          setTimeout(() => {
+            fetchThreads();
+          }, 500);
           return prev;
         }
 
-        return prev.map((t) =>
+        const updated = prev.map((t) =>
           t.id === newMessage.threadId
             ? {
                 ...t,
                 lastMessage: newMessage.text,
-                unread: isMine || isCurrentlyOpen ? t.unread : (t.unread ?? 0) + 1,
+                unread:
+                  isMine || isCurrentlyOpen ? t.unread : (t.unread ?? 0) + 1,
               }
-            : t
+            : t,
         );
+
+        return updated;
       });
     };
 
@@ -102,8 +147,8 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         prev.map((t) =>
           t.id === payload.threadId
             ? { ...t, lastMessage: payload.lastMessage }
-            : t
-        )
+            : t,
+        ),
       );
     };
 
@@ -121,8 +166,8 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       prev.map((group) =>
         group.id === groupId
           ? { ...group, messages: [...group.messages, newMessage] }
-          : group
-      )
+          : group,
+      ),
     );
   };
 
@@ -158,6 +203,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
 export const useMessages = () => {
   const context = useContext(MessageContext);
-  if (!context) throw new Error("useMessages must be used inside MessageProvider");
+  if (!context)
+    throw new Error("useMessages must be used inside MessageProvider");
   return context;
 };

@@ -33,14 +33,13 @@ export const Avatar: React.FC<AvatarProps> = ({
   isOnline = false,
 }) => {
   const { currentUser } = useCurrentUser();
-  const displayInitials = initials
+  const displayInitials = (initials && initials.length > 0)
     ? initials
     : (currentUser?.firstname?.[0] ?? "") + (currentUser?.lastname?.[0] ?? "");
   const backgroundColor = color ?? uniqueAvatarColor(displayInitials);
 
   return (
-    <div className="relative shrink-0"
-    >
+    <div className="relative shrink-0">
       <div
         className={`rounded-md flex hover:border-[2px] border-orange-500 items-center justify-center font-bold ${avatarSizes[size]} ${className}`}
         style={{ backgroundColor, color: "#fff" }}

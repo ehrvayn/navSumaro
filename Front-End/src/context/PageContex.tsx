@@ -11,7 +11,7 @@ const PageContext = createContext<PageContextType | null>(null);
 export const PageProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [activePage, setActivePage] = useState<Page>("login");
+  const [activePage, setActivePage] = useState<Page>("home");
 
   const handleSetActivePage = (page: Page) => {
     setActivePage(page);

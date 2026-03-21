@@ -14,21 +14,21 @@ import { LoginProvider } from "./context/LoginContex";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <PageProvider>
-        <CurrentUserProvider>
-          <LoginProvider>
-            <GroupProvider>
-              <PostProvider>
-                <ListingProvider>
-                  <MessageProvider>
-                    <EventProvider>
-                      <App />
-                    </EventProvider>
-                  </MessageProvider>
-                </ListingProvider>
-              </PostProvider>
-            </GroupProvider>
-          </LoginProvider>
-        </CurrentUserProvider>
+      <CurrentUserProvider>
+        <LoginProvider>
+          <GroupProvider>
+            <PostProvider>
+              <ListingProvider>
+                <MessageProvider>
+                  <EventProvider>
+                    <App />
+                  </EventProvider>
+                </MessageProvider>
+              </ListingProvider>
+            </PostProvider>
+          </GroupProvider>
+        </LoginProvider>
+      </CurrentUserProvider>
     </PageProvider>
   </React.StrictMode>,
 );

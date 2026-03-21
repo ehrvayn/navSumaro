@@ -109,7 +109,9 @@ const Topbar: React.FC<TopbarProps> = ({
                   setInputValue(e.target.value);
                   e.target.value === "" && onSearchChange("");
                 }}
-                onKeyDown={(e) => e.key === "Enter" && onSearchChange(inputValue)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && onSearchChange(inputValue)
+                }
                 placeholder="Search..."
                 className="w-full bg-base border border-border rounded-md pl-10 pr-10 py-2 text-text-primary text-[13px] outline-none focus:border-brand transition-all"
               />
@@ -127,7 +129,9 @@ const Topbar: React.FC<TopbarProps> = ({
           </div>
         )}
 
-        <div className={`flex items-center gap-1.5 ml-auto z-10 ${isSearchExpanded ? "hidden" : "flex"}`}>
+        <div
+          className={`flex items-center gap-1.5 ml-auto z-10 ${isSearchExpanded ? "hidden" : "flex"}`}
+        >
           <button
             onClick={() => setIsSearchExpanded(true)}
             className="lg:hidden p-2 rounded-xl text-text-muted hover:bg-base-hover"
@@ -146,7 +150,9 @@ const Topbar: React.FC<TopbarProps> = ({
                   setInputValue(e.target.value);
                   e.target.value === "" && onSearchChange("");
                 }}
-                onKeyDown={(e) => e.key === "Enter" && onSearchChange(inputValue)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && onSearchChange(inputValue)
+                }
                 placeholder="Search..."
                 className="bg-base border w-[80%] xl:w-full border-border rounded-md pl-10 pr-10 py-2 text-text-primary text-[13px] outline-none focus:border-brand transition-all"
               />
@@ -164,7 +170,10 @@ const Topbar: React.FC<TopbarProps> = ({
             </div>
           </div>
 
-          <ProfileMenu setProfileOpen={setProfileOpen} profileOpen={profileOpen} />
+          <ProfileMenu
+            setProfileOpen={setProfileOpen}
+            profileOpen={profileOpen}
+          />
         </div>
       </div>
 
