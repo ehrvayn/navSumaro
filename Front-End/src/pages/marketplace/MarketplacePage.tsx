@@ -49,13 +49,17 @@ const MarketplacePage: React.FC<MarketplacePageProps> = ({
     );
   }
 
-  const fuse = new Fuse(listings, {
+  const validListings = listings.filter(
+    (l) => l && l.id && l.seller && l.seller.id
+  );
+
+  const fuse = new Fuse(validListings, {
     keys: ["title", "description"],
     threshold: 0.4,
   });
 
   const filtered = (
-    searchQuery ? fuse.search(searchQuery).map((r) => r.item) : listings
+    searchQuery ? fuse.search(searchQuery).map((r) => r.item) : validListings
   ).filter((l) => {
     const matchCategory =
       activeCategory === "All" ||
@@ -66,19 +70,19 @@ const MarketplacePage: React.FC<MarketplacePageProps> = ({
   const stats = [
     {
       label: "Active",
-      value: listings.filter((l) => !l.sold).length,
+      value: validListings.filter((l) => !l.sold).length,
       color: "text-emerald-400",
       icon: <ShoppingBag size={12} />,
     },
     {
       label: "Sold",
-      value: listings.filter((l) => l.sold).length,
+      value: validListings.filter((l) => l.sold).length,
       color: "text-rose-400",
       icon: <CheckCircle2 size={12} />,
     },
     {
       label: "Sellers",
-      value: new Set(listings.map((l) => l.seller.id)).size,
+      value: new Set(validListings.map((l) => l.seller.id)).size,
       color: "text-sky-400",
       icon: <Users size={12} />,
     },
@@ -106,7 +110,9 @@ const MarketplacePage: React.FC<MarketplacePageProps> = ({
             {stats.map((s, i) => (
               <div
                 key={s.label}
-                className={`flex items-baseline gap-1 px-3 py-1 ${i !== stats.length - 1 ? "border-r border-border/30" : ""}`}
+                className={`flex items-baseline gap-1 px-3 py-1 ${
+                  i !== stats.length - 1 ? "border-r border-border/30" : ""
+                }`}
               >
                 <span
                   className={`text-sm sm:text-md font-black tabular-nums ${s.color}`}
@@ -183,7 +189,9 @@ const MarketplacePage: React.FC<MarketplacePageProps> = ({
             }`}
           >
             <div
-              className={`w-1.5 h-1.5 rounded-full ${showSold ? "bg-brand animate-pulse" : "bg-text-muted"}`}
+              className={`w-1.5 h-1.5 rounded-full ${
+                showSold ? "bg-brand animate-pulse" : "bg-text-muted"
+              }`}
             />
             {showSold ? "Hide Sold Items" : "Show Sold Items"}
           </button>

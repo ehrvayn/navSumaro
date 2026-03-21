@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Logo from "../assets/img/Logo.png";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useLogin } from "../context/LoginContex";
-import RegisterPage from "./RegisterPage";
+import RegisterPage from "./register/RegisterPage";
 
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,9 +17,76 @@ function LoginPage() {
   } = useLogin();
 
   return (
-    <div className={`min-h-screen bg-base ${isRegister ? "flex items-start justify-center py-8 px-4" : "grid grid-cols-1 lg:grid-cols-2"}`}>
+    <div className={`min-h-screen bg-base overflow-hidden ${isRegister ? "flex items-start justify-center py-8 px-4" : "lg:grid flex lg:grid-cols-[1.5fr_1fr]"}`}>
+
+      {!isRegister && (
+        <div className="hidden lg:flex flex-col justify-between p-12 bg-base-elevated border-l border-border relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/5 rounded-full translate-x-1/2 -translate-y-1/2 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand/5 rounded-full -translate-x-1/2 translate-y-1/2 blur-3xl pointer-events-none" />
+
+          <img src={Logo} className="w-[160px] relative z-10" />
+
+          <div className="flex flex-col gap-8 relative z-10">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2 text-brand text-[11px] font-bold uppercase tracking-widest">
+                Integrated Academic Platform
+              </div>
+              <h2 className="text-3xl font-black text-text-primary leading-tight">
+                One platform.
+                <br />
+                Your entire campus.
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                {
+                  emoji: "🎓",
+                  label: "Academic Forums",
+                  desc: "Q&A with upvoting & reputation points",
+                },
+                {
+                  emoji: "🛒",
+                  label: "Safe Marketplace",
+                  desc: "Buy & sell with verified students only",
+                },
+                {
+                  emoji: "👥",
+                  label: "Group Activities",
+                  desc: "Collaborate with verified classmates",
+                },
+                {
+                  emoji: "📅",
+                  label: "Campus Events",
+                  desc: "Never miss org announcements",
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="bg-base/50 border border-border items-center rounded-md p-3.5 flex gap-1.5"
+                >
+                  <span className="text-[35px]">{item.emoji}</span>
+                  <div className="flex flex-col">
+                    <span className="text-[12px] font-bold text-text-primary">
+                      {item.label}
+                    </span>
+                    <span className="text-[11px] text-text-muted">
+                      {item.desc}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-[11px] text-text-muted relative z-10">
+            © 2026 NavSumaro
+          </p>
+        </div>
+      )}
+
       {!isRegister ? (
-        <div className="flex flex-col items-center justify-center px-6 py-12 min-h-screen relative overflow-y-auto">
+        <div className="flex flex-col w-full items-center justify-center px-6 py-12 min-h-screen relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-transparent pointer-events-none lg:hidden" />
           <div className="absolute top-0 right-0 w-72 h-72 bg-brand/5 rounded-full translate-x-1/2 -translate-y-1/2 blur-3xl pointer-events-none lg:hidden" />
 
@@ -119,72 +186,6 @@ function LoginPage() {
       ) : (
         <div className="w-full max-w-[760px] mx-auto">
           <RegisterPage />
-        </div>
-      )}
-
-      {!isRegister && (
-        <div className="hidden lg:flex flex-col justify-between p-12 bg-base-elevated border-l border-border relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/5 rounded-full translate-x-1/2 -translate-y-1/2 blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand/5 rounded-full -translate-x-1/2 translate-y-1/2 blur-3xl pointer-events-none" />
-
-          <img src={Logo} className="w-[160px] relative z-10" />
-
-          <div className="flex flex-col gap-8 relative z-10">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2 text-brand text-[11px] font-bold uppercase tracking-widest">
-                Integrated Academic Platform
-              </div>
-              <h2 className="text-3xl font-black text-text-primary leading-tight">
-                One platform.
-                <br />
-                Your entire campus.
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                {
-                  emoji: "🎓",
-                  label: "Academic Forums",
-                  desc: "Q&A with upvoting & reputation points",
-                },
-                {
-                  emoji: "🛒",
-                  label: "Safe Marketplace",
-                  desc: "Buy & sell with verified students only",
-                },
-                {
-                  emoji: "👥",
-                  label: "Group Activities",
-                  desc: "Collaborate with verified classmates",
-                },
-                {
-                  emoji: "📅",
-                  label: "Campus Events",
-                  desc: "Never miss org announcements",
-                },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="bg-base/50 border border-border items-center rounded-md p-3.5 flex gap-1.5"
-                >
-                  <span className="text-[35px]">{item.emoji}</span>
-                  <div className="flex flex-col">
-                    <span className="text-[12px] font-bold text-text-primary">
-                      {item.label}
-                    </span>
-                    <span className="text-[11px] text-text-muted">
-                      {item.desc}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <p className="text-[11px] text-text-muted relative z-10">
-            © 2026 NavSumaro
-          </p>
         </div>
       )}
     </div>

@@ -2,7 +2,8 @@ import { query } from "../../database/Connection.js";
 import commentQuery from "../../models/commentQuery.js";
 
 export const create = async (commentData: any, currentUser: any) => {
-  console.log("currentUser in create:", currentUser);
+  console.log("commentData:", commentData);
+  console.log("currentUser:", currentUser);
   if (!commentData.postId)
     return { success: false, message: "Post ID is required" };
   if (!currentUser?.id)
@@ -11,9 +12,13 @@ export const create = async (commentData: any, currentUser: any) => {
     return { success: false, message: "Comment text is required" };
 
   try {
+    const authorType =
+      currentUser.accountType === "organization" ? "organization" : "student";
+
     const { query: insertSql, values: insertValues } = commentQuery.create(
       commentData,
       currentUser.id,
+      authorType,
     );
     const result = await query(insertSql, insertValues);
 
@@ -22,17 +27,35 @@ export const create = async (commentData: any, currentUser: any) => {
     );
     await query(incrSql, incrValues);
 
+    const commentId = result.rows[0].id;
+
+    let authorObj: any = {
+      id: currentUser.id,
+      accountType: currentUser.accountType,
+      isOnline: false,
+      isVerified: currentUser.isVerified ?? false,
+    };
+
+    if (currentUser.accountType === "organization") {
+      authorObj = {
+        ...authorObj,
+        name: currentUser.name || "",
+        avatar: currentUser.avatar || null,
+        organizationType: currentUser.organizationType || "",
+      };
+    } else {
+      authorObj = {
+        ...authorObj,
+        firstname: currentUser.firstname || "",
+        lastname: currentUser.lastname || "",
+        avatar: currentUser.avatar || null,
+        program: currentUser.program || "",
+      };
+    }
+
     const comment = {
       ...result.rows[0],
-      author: {
-        id: currentUser.id,
-        firstname: currentUser.firstname,
-        lastname: currentUser.lastname,
-        avatar: currentUser.avatar,
-        program: currentUser.program,
-        accountType: currentUser.accountType,
-        isOnline: false,
-      },
+      author: authorObj,
       likes: 0,
       liked: false,
     };

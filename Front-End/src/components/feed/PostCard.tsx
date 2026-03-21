@@ -68,6 +68,20 @@ const PostCard: React.FC<PostCardProps> = ({
     return `${years}y ago`;
   })();
 
+  const getAuthorName = () => {
+    if (post.author.accountType === "organization") {
+      return (post.author as any).name;
+    }
+    return post.author.firstname;
+  };
+
+  const getAuthorInitials = () => {
+    if (post.author.accountType === "organization") {
+      return (post.author as any).name?.[0] ?? "";
+    }
+    return ((post.author as User).firstname?.[0] ?? "") + ((post.author as User).lastname?.[0] ?? "");
+  };
+
   return (
     <article
       onClick={() => onClick(post)}
@@ -171,26 +185,22 @@ const PostCard: React.FC<PostCardProps> = ({
               getUserData(post.author.id);
             }}
           >
-            <Avatar
-              initials={
-                ((post.author as User).firstname?.[0] ?? "") +
-                ((post.author as User).lastname?.[0] ?? "")
-              }
-              size="sm"
-            />
+            <Avatar initials={getAuthorInitials()} size="sm" />
           </button>
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] font-bold text-text-primary">
-                {post.author.accountType === "student" && post.author.firstname}
+                {getAuthorName()}
               </span>
               {post.author.isVerified && (
                 <FaCheckCircle size={12} className="text-green-500" />
               )}
             </div>
             <div className="text-[10px] text-text-muted">
-              {(post.author as User).program} <span className="text-sm">|</span>{" "}
-              {timeAgo}
+              {post.author.accountType === "organization"
+                ? (post.author as any).organizationType
+                : (post.author as User).program}{" "}
+              <span className="text-sm">|</span> {timeAgo}
             </div>
           </div>
         </div>

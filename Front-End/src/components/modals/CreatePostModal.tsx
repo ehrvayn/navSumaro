@@ -64,6 +64,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const { handleCreatePost } = usePosts();
   const { activeGroupId } = useGroup();
   const { currentUser } = useCurrentUser();
+
   if (!currentUser) return null;
 
   useEffect(() => {
@@ -72,6 +73,20 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
       document.body.style.overflow = "";
     };
   }, []);
+
+  const getDisplayName = () => {
+    if (currentUser.accountType === "organization") {
+      return (currentUser as any).name;
+    }
+    return currentUser.firstname;
+  };
+
+  const getDisplayInfo = () => {
+    if (currentUser.accountType === "organization") {
+      return (currentUser as any).organizationType;
+    }
+    return currentUser.program;
+  };
 
   const addTag = () => {
     const t = tagInput.trim().replace(/^#/, "");
@@ -122,10 +137,10 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
             <Avatar initials={currentUser.avatar} size="md" />
             <div>
               <div className="text-[13px] font-semibold text-text-primary">
-                {currentUser.firstname}
+                {getDisplayName()}
               </div>
               <div className="text-[10px] text-text-muted">
-                {currentUser.university} · {currentUser.program}
+                {currentUser.university} · {getDisplayInfo()}
               </div>
             </div>
           </div>

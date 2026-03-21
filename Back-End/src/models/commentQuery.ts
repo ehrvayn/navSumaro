@@ -1,14 +1,19 @@
 const commentQuery = {
-  create: (commentData: any, userId: string) => ({
+  create: (
+    commentData: any,
+    userId: string,
+    authorType: string = "student",
+  ) => ({
     query: `
-      INSERT INTO comments (post_id, parent_id, author_id, text)
-      VALUES ($1, $2, $3, $4)
-      RETURNING *`,
+    INSERT INTO comments (post_id, parent_id, author_id, text, author_type)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING *`,
     values: [
       commentData.postId,
       commentData.parentId ?? null,
       userId,
       commentData.text,
+      authorType,
     ],
   }),
   delete: (id: any, userId: any) => ({
@@ -21,8 +26,10 @@ const commentQuery = {
   }),
   retrieveAll: (postId: string, userId: string) => ({
     query: `
-    SELECT 
-      c.*,
+  SELECT 
+    c.*,
+    CASE 
+      WHEN c.author_type = 'student' THEN
       json_build_object(
         'id', u.id,
         'firstname', u.firstname,
@@ -32,13 +39,25 @@ const commentQuery = {
         'program', u.program,
         'isOnline', false,
         'isVerified', u."isVerified"
-      ) as author,
-      CASE WHEN cl.user_id IS NOT NULL THEN true ELSE false END AS "liked"
-    FROM comments c
-    JOIN users u ON c.author_id = u.id
-    LEFT JOIN comment_likes cl ON cl.comment_id = c.id AND cl.user_id = $2
-    WHERE c.post_id = $1
-    ORDER BY c.time DESC`,
+      )
+      WHEN c.author_type = 'organization' THEN
+      json_build_object(
+        'id', o.id,
+        'name', o.name,
+        'avatar', o.avatar,
+        'accountType', o."accountType",
+        'organizationType', o."organizationType",
+        'isOnline', false,
+        'isVerified', o."isVerified"
+      )
+    END as author,
+    CASE WHEN cl.user_id IS NOT NULL THEN true ELSE false END AS "liked"
+  FROM comments c
+  LEFT JOIN users u ON c.author_id = u.id AND c.author_type = 'student'
+  LEFT JOIN organizations o ON c.author_id = o.id AND c.author_type = 'organization'
+  LEFT JOIN comment_likes cl ON cl.comment_id = c.id AND cl.user_id = $2
+  WHERE c.post_id = $1
+  ORDER BY c.time DESC`,
     values: [postId, userId],
   }),
   getLike: (commentId: string, userId: string) => ({

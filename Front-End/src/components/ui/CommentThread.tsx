@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Comment } from "../../types";
 import { Avatar } from "../ui";
-import { Heart, SendHorizontal, ChevronDown, CheckCircle2 } from "lucide-react";
-import { User } from "../../types";
+import { Heart, SendHorizontal, ChevronDown } from "lucide-react";
 import { usePosts } from "../../context/PostContext";
 import { usePage } from "../../context/PageContex";
+import { FaCheckCircle } from "react-icons/fa";
+
 
 interface CommentThreadProps {
   comment: Comment;
@@ -65,6 +66,27 @@ const CommentThread: React.FC<CommentThreadProps> = ({
     setViewReplies(true);
   };
 
+  const getAuthorName = () => {
+    if (c.author.accountType === "organization") {
+      return (c.author as any).firstname;
+    }
+    return `${c.author.firstname} ${c.author.lastname}`;
+  };
+
+  const getAuthorInitials = () => {
+    if (c.author.accountType === "organization") {
+      return (c.author as any).name?.[0] ?? "";
+    }
+    return (c.author.firstname?.[0] ?? "") + (c.author.lastname?.[0] ?? "");
+  };
+
+  const getAuthorInfo = () => {
+    if (c.author.accountType === "organization") {
+      return (c.author as any).organizationType;
+    }
+    return c.author.program;
+  };
+
   return (
     <div className="flex flex-col min-w-0">
       <div className="flex gap-1 min-w-0">
@@ -79,12 +101,7 @@ const CommentThread: React.FC<CommentThreadProps> = ({
               setSelectedPostId(null);
             }}
           >
-            <Avatar
-              initials={
-                (c.author.firstname?.[0] ?? "") + (c.author.lastname?.[0] ?? "")
-              }
-              size="sm"
-            />
+            <Avatar initials={getAuthorInitials()} size="sm" />
           </button>
           {viewReplies && replies.length > 0 && (
             <div className="absolute top-8 bottom-0 left-1/2 -translate-x-1/2 w-[2px] bg-gray-700" />
@@ -97,18 +114,18 @@ const CommentThread: React.FC<CommentThreadProps> = ({
               <div className="flex flex-col sm:flex-row gap-0 sm:gap-1.5 flex-wrap min-w-0">
                 <div className="flex items-center gap-1 min-w-0">
                   <span className="text-[10px] sm:text-[11px] font-bold text-text-primary truncate">
-                    {c.author.firstname} {c.author.lastname}
+                    {getAuthorName()}
                   </span>
                   {c.author.isVerified && (
-                    <CheckCircle2
+                    <FaCheckCircle
                       size={11}
                       className="text-green-500 shrink-0"
                     />
                   )}
                 </div>
-                {c.author.program && (
+                {getAuthorInfo() && (
                   <span className="text-[10px] sm:text-[11px] font-bold text-text-muted truncate">
-                    {`(${c.author.program})`}
+                    {`(${getAuthorInfo()})`}
                   </span>
                 )}
               </div>

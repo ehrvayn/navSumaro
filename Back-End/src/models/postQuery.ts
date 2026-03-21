@@ -31,18 +31,29 @@ const postQuery = {
           'isVerified', u."isVerified",
           'reputation', u.reputation
         )
+        WHEN p."orgAuthorId" IS NOT NULL THEN
+        json_build_object(
+          'id', o.id,
+          'name', o.name,
+          'avatar', o.avatar,
+          'accountType', o."accountType",
+          'organizationType', o."organizationType",
+          'university', o.university,
+          'isVerified', o."isVerified"
+        )
       END as author,
       CASE WHEN pv.type = 'up' THEN true ELSE false END AS "upVote",
       CASE WHEN pv.type = 'down' THEN true ELSE false END AS "downVote"
     FROM posts p
     LEFT JOIN users u ON p."studentAuthorId" = u.id
+    LEFT JOIN organizations o ON p."orgAuthorId" = o.id
     LEFT JOIN post_votes pv ON pv.post_id = p.id AND pv.user_id = $1
     WHERE ${groupId ? `p."groupId" = $2` : `p."groupId" IS NULL`}
     ORDER BY p."createdAt" DESC;`,
     values: groupId ? [userId, groupId] : [userId],
   }),
   delete: (id: any, userId: any) => ({
-    query: `DELETE FROM posts WHERE id = $1 AND "studentAuthorId" = $2`,
+    query: `DELETE FROM posts WHERE id = $1 AND ("studentAuthorId" = $2 OR "orgAuthorId" = $2)`,
     values: [id, userId],
   }),
   update: (postData: any) => ({
@@ -53,7 +64,7 @@ const postQuery = {
       body = $2,
       tags = $3,
       type = $4
-    WHERE id = $5 AND "studentAuthorId" = $6
+    WHERE id = $5 AND ("studentAuthorId" = $6 OR "orgAuthorId" = $6)
     RETURNING *`,
     values: [
       postData.title,

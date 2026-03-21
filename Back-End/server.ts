@@ -11,6 +11,7 @@ import GroupRoute from "./src/routes/GroupRoute.js";
 import MessageRoute from "./src/routes/MessageRoute.js";
 import { sendMessage } from "./src/services/message/sendMessage.js";
 import { query } from "./src/database/Connection.js";
+import orgRoute from "./src/routes/orgRoute.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -26,6 +27,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use("/org", orgRoute);
 app.use("/message", MessageRoute);
 app.use("/group", GroupRoute);
 app.use("/user", UserRoute);

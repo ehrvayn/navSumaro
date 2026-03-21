@@ -13,6 +13,8 @@ interface LoginContextType {
   logout: () => void;
   isRegister: boolean;
   setIsRegister: React.Dispatch<React.SetStateAction<boolean>>;
+  loginError: string;
+  setLoginError: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const LoginContext = createContext<LoginContextType | null>(null);
@@ -24,6 +26,7 @@ export const LoginProvider: React.FC<{ children: React.ReactNode }> = ({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showLogout, setShowLogout] = useState(false);
+  const [loginError, setLoginError] = useState("");
   const { setCurrentUser, refreshUser } = useCurrentUser();
   const [isRegister, setIsRegister] = useState(false);
 
@@ -34,6 +37,7 @@ export const LoginProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const handleLogin = async () => {
+    setLoginError("");
     try {
       const response = await fetch("http://localhost:5000/user/login", {
         method: "POST",
@@ -48,12 +52,13 @@ export const LoginProvider: React.FC<{ children: React.ReactNode }> = ({
         setEmail("");
         setPassword("");
         await refreshUser();
-        setActivePage("home")
+        setActivePage("home");
       } else {
-        alert(data.message || "Login failed!");
+        setLoginError(data.message || "Login failed!");
       }
     } catch (error) {
       console.error("Login error:", error);
+      setLoginError("Something went wrong!");
     }
   };
 
@@ -70,6 +75,8 @@ export const LoginProvider: React.FC<{ children: React.ReactNode }> = ({
         handleLogin,
         showLogout,
         setShowLogout,
+        loginError,
+        setLoginError,
       }}
     >
       {children}

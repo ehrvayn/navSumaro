@@ -95,10 +95,12 @@ const GroupChat: React.FC<GroupChatProps> = ({ conversation }) => {
                 className={`flex gap-3 ${isMe ? "flex-row-reverse" : "flex-row"}`}
               >
                 {!isMe && (
+                  <div className=" self-center">
                   <Avatar
                     initials={`${msg.firstname?.[0] || ""}${msg.lastname?.[0] || ""}`}
                     size="xs"
                   />
+                  </div>
                 )}
                 <div
                   className={`flex flex-col max-w-[75%] ${isMe ? "items-end" : "items-start"}`}

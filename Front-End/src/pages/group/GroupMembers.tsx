@@ -6,6 +6,8 @@ import { IoMdRemoveCircle } from "react-icons/io";
 import { useGroup } from "../../context/GroupContex";
 import { useCurrentUser } from "../../context/CurrentUserContex";
 import { FaCheckCircle } from "react-icons/fa";
+import { usePosts } from "../../context/PostContext";
+import { usePage } from "../../context/PageContex";
 
 interface GroupMemberProps {
   members: GroupMember[];
@@ -15,6 +17,8 @@ function GroupMembers({ members }: GroupMemberProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const { kickMember, activeGroupId } = useGroup();
   const { currentUser } = useCurrentUser();
+  const { setActivePage } = usePage();
+  const { getUserData, setPostUserProfileId } = usePosts();
 
   return (
     <div className="flex-1 overflow-y-auto pb-10">
@@ -22,7 +26,7 @@ function GroupMembers({ members }: GroupMemberProps) {
         {members.map((m) => (
           <div
             key={m.user.id}
-            className={`flex justify-between items-center gap-3 bg-white/[0.03] border ${m.user.id === currentUser?.id ? "border-orange-500/50" : "border-white/[0.07]" }  rounded-md p-3 hover:bg-white/5 transition-all`}
+            className={`flex justify-between items-center gap-3 bg-white/[0.03] border ${m.user.id === currentUser?.id ? "border-orange-500/50" : "border-white/[0.07]"}  rounded-md p-3 hover:bg-white/5 transition-all`}
           >
             <div className="flex items-center gap-3 min-w-0">
               <Avatar
@@ -72,7 +76,15 @@ function GroupMembers({ members }: GroupMemberProps) {
                     onClick={(e) => e.stopPropagation()}
                     className="absolute right-0 mt-1 w-32 bg-base-surface border border-border rounded-md shadow-lg z-50"
                   >
-                    <button className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-text-primary hover:bg-white/5 transition-colors">
+                    <button
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-text-primary hover:bg-white/5 transition-colors"
+                      onClick={(e) => {
+                        setPostUserProfileId(m.user.id);
+                        setActivePage("profile");
+                        getUserData(m.user.id);
+                        setOpenMenuId(null);
+                      }}
+                    >
                       <User size={13} />
                       View Profile
                     </button>

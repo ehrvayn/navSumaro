@@ -17,11 +17,13 @@ interface Badge {
 
 interface Draft {
   id: string;
-  firstname: string;
-  lastname: string;
+  firstname?: string;
+  lastname?: string;
+  name?: string;
   university: string;
-  program: string;
-  yearLevel: number;
+  program?: string;
+  organizationType?: string;
+  yearLevel?: number;
   isVerified: boolean;
   reputation: number;
   badges: Badge[];
@@ -111,8 +113,10 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     id: "",
     firstname: "",
     lastname: "",
+    name: "",
     university: "",
     program: "",
+    organizationType: "",
     yearLevel: 0,
     isVerified: false,
     reputation: 0,
@@ -149,25 +153,29 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const normalizeComment = (c: any): Comment => ({
-    id: c.id,
-    postId: c.post_id,
-    parentId: c.parent_id ?? null,
-    text: c.text,
-    time: c.created_at ?? c.time ?? new Date().toISOString(),
-    likes: c.likes ?? 0,
-    liked: c.liked === true,
-    author: {
-      id: c.author.id,
-      firstname: c.author.firstname,
-      lastname: c.author.lastname,
-      avatar: (c.author.firstname?.[0] ?? "") + (c.author.lastname?.[0] ?? ""),
-      program: c.author.program,
-      accountType: c.author.accountType,
-      isOnline: false,
-      isVerified: c.author.isVerified,
-    },
-  });
+  const normalizeComment = (c: any): Comment => {
+    const isOrg = c.author.accountType === "organization";
+
+    return {
+      id: c.id,
+      postId: c.post_id,
+      parentId: c.parent_id ?? null,
+      text: c.text,
+      time: c.created_at ?? c.time ?? new Date().toISOString(),
+      likes: c.likes ?? 0,
+      liked: c.liked === true,
+      author: {
+        id: c.author.id,
+        firstname: isOrg ? (c.author as any).name : c.author.firstname,
+        lastname: isOrg ? "" : c.author.lastname || "",
+        avatar: c.author.avatar,
+        program: isOrg ? (c.author as any).organizationType : c.author.program,
+        accountType: c.author.accountType,
+        isOnline: false,
+        isVerified: c.author.isVerified,
+      },
+    };
+  };
 
   const getComments = (postId: string): Comment[] => postComments[postId] ?? [];
 
@@ -508,30 +516,64 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!token) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/user/retrieve/${userId}`,
-        {
+      const decoded = JSON.parse(atob(token.split(".")[1]));
+      const currentUserAccountType = decoded.accountType;
+
+      // Determine the profile user's account type by trying to fetch from both endpoints
+      let endpoint = `http://localhost:5000/user/retrieve/${userId}`;
+
+      let response = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      // If user endpoint fails, try org endpoint
+      if (!response.ok) {
+        endpoint = `http://localhost:5000/org/retrieve/${userId}`;
+        response = await fetch(endpoint, {
           method: "GET",
           headers: {
-            Authorization: `Beare ${token}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        },
-      );
+        });
+      }
+
       if (response.ok) {
         const data = await response.json();
-        setDraft({
-          id: data.id,
-          firstname: data.firstname,
-          lastname: data.lastname,
-          university: data.university,
-          program: data.program,
-          yearLevel: data.yearLevel,
-          isVerified: data.isVerified,
-          reputation: data.reputation,
-          badges: data.badges,
-          avatar: data.avatar,
-        });
+        const userData = data.data || data;
+
+        // Check if it's an org by looking for org-specific fields
+        const isOrgProfile = userData.organizationType !== undefined;
+
+        if (isOrgProfile) {
+          setDraft({
+            id: userData.id,
+            name: userData.name,
+            university: userData.university,
+            organizationType: userData.organizationType,
+            isVerified: userData.isVerified,
+            reputation: 0,
+            badges: [],
+            avatar: userData.avatar,
+          });
+        } else {
+          setDraft({
+            id: userData.id,
+            firstname: userData.firstname,
+            lastname: userData.lastname,
+            university: userData.university,
+            program: userData.program,
+            yearLevel: userData.yearLevel,
+            isVerified: userData.isVerified,
+            reputation: userData.reputation,
+            badges: userData.badges,
+            avatar: userData.avatar,
+          });
+        }
       }
     } catch (error) {
       console.log(error);

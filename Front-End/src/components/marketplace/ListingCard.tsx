@@ -1,5 +1,5 @@
 import React from "react";
-import { MarketplaceListing } from "../../types";
+import { MarketplaceListing, Message } from "../../types";
 import { Avatar, Button } from "../ui";
 import { MessageCircleMore } from "lucide-react";
 import { useMessages } from "../../context/MessageContext";
@@ -7,7 +7,7 @@ import { CheckCircle2 } from "lucide-react";
 
 interface ListingCardProps {
   listing: MarketplaceListing;
-  onClick: (id: string) => void;
+  onClick: () => void;
 }
 
 const conditionConfig: Record<
@@ -29,26 +29,20 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onClick }) => {
     e.stopPropagation();
     const existingConversation = Messages.find(
       (m) =>
-        m.participant.id === listing.seller.id &&
+        m.participantId === listing.seller.id &&
         m.participant.firstname === listing.seller.firstname,
     );
 
-    const conversation = existingConversation ?? {
+    const conversation = (existingConversation ?? {
       id: `new-${listing.seller.id}-${Date.now()}`,
-      participant: {
-        id: listing.seller.id,
-        firstname: listing.seller.firstname,
-        lastname: listing.seller.lastname,
-        avatar: listing.seller.avatar,
-        isOnline: false,
-        program: listing.seller.program,
-        accountType: "student",
-      },
-      messages: [],
-      lastMessage: "",
-      lastTime: "",
-      unread: 0,
-    };
+      participantId: listing.seller.id,
+      firstname: listing.seller.firstname,
+      lastname: listing.seller.lastname,
+      avatar: listing.seller.avatar,
+      isOnline: false,
+      program: listing.seller.program,
+      accountType: "student" as const,
+    }) as Message;
 
     setSelectedConversation(conversation);
   };
@@ -56,7 +50,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onClick }) => {
   return (
     <div className="relative">
       <div
-        onClick={() => onClick(listing.id)}
+        onClick={onClick}
         className={`bg-base-surface border border-border rounded-md overflow-hidden transition-all duration-200 ${listing.sold ? "opacity-50" : "hover:border-orange-500/40 hover:shadow-brand cursor-pointer"} relative`}
       >
         <div className="h-[130px] bg-base-elevated flex items-center justify-center text-5xl border-b border-border relative">

@@ -10,6 +10,7 @@ import { User } from "../types";
 
 interface JWTPayload {
   id: string;
+  accountType?: string;
   exp?: number;
 }
 
@@ -29,24 +30,27 @@ export const CurrentUserProvider: React.FC<{ children: React.ReactNode }> = ({
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchUserProfile = useCallback(async (userId: string) => {
+  const fetchUserProfile = useCallback(async (userId: string, accountType?: string) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const response = await fetch(
-        `http://localhost:5000/user/retrieve/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+      let endpoint = `http://localhost:5000/user/retrieve/${userId}`;
+      
+      if (accountType === "organization") {
+        endpoint = `http://localhost:5000/org/retrieve/${userId}`;
+      }
+
+      const response = await fetch(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-      );
+      });
 
       if (response.ok) {
-        const userData = await response.json();
-        setCurrentUser(userData);
+        const data = await response.json();
+        setCurrentUser(data.data);
       } else {
         localStorage.removeItem("token");
         setCurrentUser(null);
@@ -71,7 +75,7 @@ export const CurrentUserProvider: React.FC<{ children: React.ReactNode }> = ({
             return;
           }
 
-          fetchUserProfile(decoded.id);
+          fetchUserProfile(decoded.id, decoded.accountType);
         } catch (error) {
           console.error("Token initialization failed:", error);
           localStorage.removeItem("token");
@@ -83,13 +87,13 @@ export const CurrentUserProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     initializeUser();
-  }, []);
+  }, [fetchUserProfile]);
 
   const refreshUser = async () => {
     const token = localStorage.getItem("token");
     if (token) {
       const decoded = jwtDecode<JWTPayload>(token);
-      await fetchUserProfile(decoded.id);
+      await fetchUserProfile(decoded.id, decoded.accountType);
     }
   };
 

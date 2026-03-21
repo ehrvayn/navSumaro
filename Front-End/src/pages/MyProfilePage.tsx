@@ -23,6 +23,7 @@ import { FaCheckCircle } from "react-icons/fa";
 interface JWTPayload {
   id: string;
   email: string;
+  accountType?: string;
 }
 
 function MyProfilePage() {
@@ -42,8 +43,14 @@ function MyProfilePage() {
     university: "",
     program: "",
     yearLevel: 0,
+    name: "",
+    organizationType: "",
+    description: "",
   });
+
   if (!currentUser) return null;
+
+  const isOrganization = currentUser.accountType === "organization";
 
   const handleTagClick = (tag: string) =>
     setActiveTag(tag === activeTag || tag === "" ? null : tag);
@@ -51,13 +58,29 @@ function MyProfilePage() {
   const filtered = posts.filter((p) => p.author?.id === currentUser.id);
 
   const startEdit = (field: string) => {
-    setDraft({
-      firstname: currentUser.firstname,
-      lastname: currentUser.lastname,
-      university: currentUser.university,
-      program: currentUser.program,
-      yearLevel: currentUser.yearLevel,
-    });
+    if (isOrganization) {
+      setDraft({
+        firstname: "",
+        lastname: "",
+        university: currentUser.university || "",
+        program: "",
+        yearLevel: 0,
+        name: (currentUser as any).name || "",
+        organizationType: (currentUser as any).organizationType || "",
+        description: (currentUser as any).description || "",
+      });
+    } else {
+      setDraft({
+        firstname: currentUser.firstname || "",
+        lastname: currentUser.lastname || "",
+        university: currentUser.university || "",
+        program: currentUser.program || "",
+        yearLevel: currentUser.yearLevel || 0,
+        name: "",
+        organizationType: "",
+        description: "",
+      });
+    }
     setAccountDraft({
       email: currentUser.email,
       password: "",
@@ -77,20 +100,21 @@ function MyProfilePage() {
         ? accountDraft[field as keyof typeof accountDraft]
         : draft[field as keyof typeof draft];
 
-      const response = await fetch(
-        `http://localhost:5000/user/updateUser/${decoded.id}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            type: field,
-            value1: value,
-          }),
+      const endpoint = isOrganization
+        ? `http://localhost:5000/org/updateOrg/${decoded.id}`
+        : `http://localhost:5000/user/updateUser/${decoded.id}`;
+
+      const response = await fetch(endpoint, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          type: field,
+          value1: value,
+        }),
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -108,7 +132,7 @@ function MyProfilePage() {
     setConfirmPassword("");
   };
 
-  const fields: {
+  const studentFields: {
     key: keyof typeof draft;
     label: string;
     icon: React.ReactNode;
@@ -121,8 +145,25 @@ function MyProfilePage() {
       icon: <School size={13} />,
     },
     { key: "program", label: "Program", icon: <BookOpen size={13} /> },
-    { key: "yearLevel", label: "yearLevel", icon: <GraduationCap size={13} /> },
+    { key: "yearLevel", label: "Year Level", icon: <GraduationCap size={13} /> },
   ];
+
+  const orgFields: {
+    key: keyof typeof draft;
+    label: string;
+    icon: React.ReactNode;
+  }[] = [
+    { key: "name", label: "Organization Name", icon: <User size={13} /> },
+    {
+      key: "university",
+      label: "University",
+      icon: <School size={13} />,
+    },
+    { key: "organizationType", label: "Organization Type", icon: <BookOpen size={13} /> },
+    { key: "description", label: "Description", icon: <GraduationCap size={13} /> },
+  ];
+
+  const fields = isOrganization ? orgFields : studentFields;
 
   const accountFields: {
     key: keyof typeof accountDraft;
@@ -144,14 +185,18 @@ function MyProfilePage() {
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1.5 flex-wrap">
                     <h1 className="text-[14px] font-black text-text-primary">
-                      {currentUser.firstname} {currentUser.lastname}
+                      {isOrganization
+                        ? (currentUser as any).name
+                        : `${currentUser.firstname} ${currentUser.lastname}`}
                     </h1>
                     {currentUser.isVerified && (
                       <FaCheckCircle size={15} className="text-green-400" />
                     )}
                   </div>
                   <p className="text-[11px] text-text-muted mt-0.5">
-                    {currentUser.program}
+                    {isOrganization
+                      ? (currentUser as any).organizationType
+                      : currentUser.program}
                   </p>
                   <p className="text-[11px] text-text-muted">
                     {currentUser.university}
@@ -160,38 +205,48 @@ function MyProfilePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                {
-                  icon: <Trophy size={13} className="text-brand" />,
-                  label: "Rep",
-                  value: currentUser.reputation,
-                },
-                {
-                  icon: <GraduationCap size={13} className="text-blue-400" />,
-                  label: "Year",
-                  value: `Yr ${currentUser.yearLevel}`,
-                },
-                {
-                  icon: <Star size={13} className="text-yellow-400" />,
-                  label: "Badges",
-                  value: currentUser.badges.length.toString(),
-                },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  className="bg-base-elevated border border-border rounded-md p-3 flex flex-col items-center gap-1"
-                >
-                  {stat.icon}
-                  <span className="text-[13px] font-black text-text-primary">
-                    {stat.value}
-                  </span>
-                  <span className="text-[9px] text-text-muted uppercase tracking-wider font-semibold">
-                    {stat.label}
-                  </span>
-                </div>
-              ))}
-            </div>
+            {!isOrganization && (
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  {
+                    icon: <Trophy size={13} className="text-brand" />,
+                    label: "Rep",
+                    value: currentUser.reputation,
+                  },
+                  {
+                    icon: <GraduationCap size={13} className="text-blue-400" />,
+                    label: "Year",
+                    value: `${currentUser.yearLevel}${
+                      currentUser.yearLevel === 1
+                        ? "st"
+                        : currentUser.yearLevel === 2
+                          ? "nd"
+                          : currentUser.yearLevel === 3
+                            ? "rd"
+                            : "th"
+                    }`,
+                  },
+                  {
+                    icon: <Star size={13} className="text-yellow-400" />,
+                    label: "Badges",
+                    value: currentUser.badges.length.toString(),
+                  },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="bg-base-elevated border border-border rounded-md p-3 flex flex-col items-center gap-1"
+                  >
+                    {stat.icon}
+                    <span className="text-[13px] font-black text-text-primary">
+                      {stat.value}
+                    </span>
+                    <span className="text-[9px] text-text-muted uppercase tracking-wider font-semibold">
+                      {stat.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="bg-base-elevated border border-border rounded-md overflow-hidden">
               <div className="px-4 py-3 border-b border-border">
@@ -322,7 +377,7 @@ function MyProfilePage() {
             <div className="bg-base-elevated border border-border rounded-md overflow-hidden">
               <div className="px-4 py-3 border-b border-border">
                 <h2 className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
-                  Profile Info
+                  {isOrganization ? "Organization Info" : "Profile Info"}
                 </h2>
               </div>
               <div className="divide-y divide-border">
@@ -348,11 +403,9 @@ function MyProfilePage() {
                         />
                       ) : (
                         <p className="text-[12px] text-text-primary truncate">
-                          {
-                            currentUser[
-                              key as keyof typeof currentUser
-                            ] as string
-                          }
+                          {isOrganization
+                            ? (currentUser as any)[key as keyof typeof currentUser]
+                            : (currentUser[key as keyof typeof currentUser] as string)}
                         </p>
                       )}
                     </div>
@@ -386,29 +439,31 @@ function MyProfilePage() {
               </div>
             </div>
 
-            <div className="bg-base-elevated border border-border rounded-md overflow-hidden">
-              <div className="px-4 py-3 border-b border-border">
-                <h2 className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
-                  Badges
-                </h2>
+            {!isOrganization && (
+              <div className="bg-base-elevated border border-border rounded-md overflow-hidden">
+                <div className="px-4 py-3 border-b border-border">
+                  <h2 className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
+                    Badges
+                  </h2>
+                </div>
+                <div className="px-4 py-3 flex flex-wrap gap-2">
+                  {currentUser.badges.map((badge) => (
+                    <span
+                      key={badge.id}
+                      className="flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full border"
+                      style={{
+                        color: badge.color,
+                        borderColor: badge.color + "44",
+                        backgroundColor: badge.color + "11",
+                      }}
+                    >
+                      <span>{badge.icon}</span>
+                      {badge.label}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="px-4 py-3 flex flex-wrap gap-2">
-                {currentUser.badges.map((badge) => (
-                  <span
-                    key={badge.id}
-                    className="flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full border"
-                    style={{
-                      color: badge.color,
-                      borderColor: badge.color + "44",
-                      backgroundColor: badge.color + "11",
-                    }}
-                  >
-                    <span>{badge.icon}</span>
-                    {badge.label}
-                  </span>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="flex-1 min-w-0 w-full">

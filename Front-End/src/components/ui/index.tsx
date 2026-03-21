@@ -33,9 +33,20 @@ export const Avatar: React.FC<AvatarProps> = ({
   isOnline = false,
 }) => {
   const { currentUser } = useCurrentUser();
-  const displayInitials = (initials && initials.length > 0)
-    ? initials
-    : (currentUser?.firstname?.[0] ?? "") + (currentUser?.lastname?.[0] ?? "");
+
+  let displayInitials = "";
+
+  if (initials && initials.length > 0) {
+    displayInitials = initials;
+  } else if (currentUser) {
+    if (currentUser.accountType === "organization") {
+      displayInitials = (currentUser as any).name?.[0] ?? "";
+    } else {
+      displayInitials =
+        (currentUser.firstname?.[0] ?? "") + (currentUser.lastname?.[0] ?? "");
+    }
+  }
+
   const backgroundColor = color ?? uniqueAvatarColor(displayInitials);
 
   return (
