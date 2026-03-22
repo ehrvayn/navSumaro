@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Post, Comment, User } from "../../types";
+import { Post, Comment, User, Organization } from "../../types";
 import { Avatar, Tag } from "../ui";
 import { useCurrentUser } from "../../context/CurrentUserContex";
 import CommentThread from "../ui/CommentThread";
@@ -260,8 +260,10 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose }) => {
               >
                 <Avatar
                   initials={
-                    ((post.author as User).firstname?.[0] ?? "") +
-                    ((post.author as User).lastname?.[0] ?? "")
+                    post.author.accountType === "student"
+                      ? ((post.author as User).firstname?.[0] ?? "") +
+                        ((post.author as User).lastname?.[0] ?? "")
+                      : ((post.author as Organization).name?.[0] ?? "")
                   }
                   size="sm"
                 />
@@ -269,14 +271,18 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose }) => {
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] sm:text-[11px] font-bold text-text-primary">
-                    {(post.author as User).firstname}
+                    {post.author.accountType === "student"
+                      ? (post.author as User).firstname
+                      : (post.author as Organization).name}
                   </span>
                   {post.author.isVerified && (
                     <FaCheckCircle size={12} className="text-green-500" />
                   )}
                 </div>
                 <div className="text-[9px] sm:text-[10px] text-text-muted">
-                  {(post.author as User).program}
+                  {post.author.accountType === "student"
+                    ? (post.author as User).program
+                    : (post.author as Organization).organizationType}
                   <span className="text-sm"> | </span>
                   {timeAgo}
                 </div>

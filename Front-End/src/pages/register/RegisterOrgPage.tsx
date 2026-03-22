@@ -10,13 +10,14 @@ import {
 } from "lucide-react";
 import { IoReturnDownBackSharp } from "react-icons/io5";
 import { FaCheckCircle } from "react-icons/fa";
+import { useLogin } from "../../context/LoginContex";
 
 interface RegisterOrgProps {
   onBack: () => void;
-  onRegister: (data: any) => void;
+  onRegisterSuccess: () => void;
 }
 
-function RegisterOrg({ onBack, onRegister }: RegisterOrgProps) {
+function RegisterOrg({ onBack, onRegisterSuccess }: RegisterOrgProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [name, setName] = useState("");
@@ -26,10 +27,8 @@ function RegisterOrg({ onBack, onRegister }: RegisterOrgProps) {
   const [organizationType, setOrganizationType] = useState("");
   const [university, setUniversity] = useState("");
   const [description, setDescription] = useState("");
-  const [repName, setRepName] = useState("");
-  const [repPosition, setRepPosition] = useState("");
-  const [repEmail, setRepEmail] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { setIsRegister } = useLogin();
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -55,35 +54,53 @@ function RegisterOrg({ onBack, onRegister }: RegisterOrgProps) {
       newErrors.organizationType = "Organization type is required";
     if (!university.trim()) newErrors.university = "University is required";
     if (!description.trim()) newErrors.description = "Description is required";
-    if (!repName.trim()) newErrors.repName = "Representative name is required";
-    if (!repPosition.trim())
-      newErrors.repPosition = "Representative position is required";
-    if (!repEmail.trim()) {
-      newErrors.repEmail = "Representative email is required";
-    } else if (!repEmail.includes("@")) {
-      newErrors.repEmail = "Must be a valid email address";
-    }
     return newErrors;
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
+    console.log("handleRegister called");
     const validationErrors = validate();
+    console.log("validationErrors:", validationErrors);
+    
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      console.log("Validation failed");
       return;
     }
+    
     setErrors({});
-    onRegister({
+    
+    const data = {
+      accountType: "organization",
       name,
       email,
       password,
       organizationType,
       university,
       description,
-      repName,
-      repPosition,
-      repEmail,
-    });
+    };
+
+    console.log("Sending data:", data);
+
+    try {
+      const response = await fetch("http://localhost:5000/org/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        alert(result.message || "Registration failed");
+        return;
+      }
+
+      onRegisterSuccess();
+    } catch (error) {
+      console.error("Register error:", error);
+      alert("Something went wrong");
+    }
   };
 
   const inputClass = (field: string) =>
@@ -121,8 +138,8 @@ function RegisterOrg({ onBack, onRegister }: RegisterOrgProps) {
             <span className="inline-flex items-center gap-1">
               <FaCheckCircle className="text-green-500 text-[10px]" />
             </span>
-            . Once verified, your organization will gain access to full
-            features such as posting an Event.
+            . Once verified, your organization will gain access to full features
+            such as posting an Event.
           </p>
         </div>
       </div>
@@ -202,6 +219,7 @@ function RegisterOrg({ onBack, onRegister }: RegisterOrgProps) {
                 className={inputClassPr("password")}
               />
               <button
+                type="button"
                 onClick={() => setShowPassword((p) => !p)}
                 className="absolute right-3 text-text-muted hover:text-text-primary transition-colors"
               >
@@ -233,6 +251,7 @@ function RegisterOrg({ onBack, onRegister }: RegisterOrgProps) {
                 className={inputClassPr("confirmPassword")}
               />
               <button
+                type="button"
                 onClick={() => setShowConfirmPassword((p) => !p)}
                 className="absolute right-3 text-text-muted hover:text-text-primary transition-colors"
               >
@@ -339,6 +358,7 @@ function RegisterOrg({ onBack, onRegister }: RegisterOrgProps) {
 
       <div className="flex items-center flex-col gap-1">
         <button
+          type="button"
           className="w-full bg-brand mb-4 hover:bg-orange-600 text-white font-bold text-[13px] py-2.5 rounded-md transition-colors"
           onClick={handleRegister}
         >
@@ -346,6 +366,7 @@ function RegisterOrg({ onBack, onRegister }: RegisterOrgProps) {
         </button>
         <div className="h-px w-[80%] bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
         <button
+          type="button"
           className="w-full hover:bg-base-hover border border-border text-text-secondary font-semibold text-[13px] py-2.5 rounded-md flex items-center justify-center gap-2"
           onClick={onBack}
         >

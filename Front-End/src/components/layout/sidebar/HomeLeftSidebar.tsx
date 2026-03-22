@@ -15,7 +15,6 @@ interface LeftSidebarProps {
 const filters = [
   { id: "newest", label: "Newest & Recent", icon: "🟢", sub: "Latest updates" },
   { id: "popular", label: "Popular Today", icon: "🔥", sub: "Featured by curators" },
-  { id: "following", label: "Following", icon: "👤", sub: "From people you follow", badge: 24 },
 ];
 
 const quickTags = ["#javascript", "#GroupStudy", "#design", "#blogging", "#tutorial"];
@@ -52,11 +51,6 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 }`}
               >
                 {f.label}
-                {f.badge && (
-                  <span className="bg-brand text-white text-[9px] font-bold px-1.5 py-px rounded-full leading-none">
-                    {f.badge}
-                  </span>
-                )}
               </div>
               <div className="text-[10px] text-text-muted mt-0.5">{f.sub}</div>
             </div>

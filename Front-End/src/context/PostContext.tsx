@@ -519,7 +519,6 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
       const decoded = JSON.parse(atob(token.split(".")[1]));
       const currentUserAccountType = decoded.accountType;
 
-      // Determine the profile user's account type by trying to fetch from both endpoints
       let endpoint = `http://localhost:5000/user/retrieve/${userId}`;
 
       let response = await fetch(endpoint, {
@@ -530,7 +529,6 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
         },
       });
 
-      // If user endpoint fails, try org endpoint
       if (!response.ok) {
         endpoint = `http://localhost:5000/org/retrieve/${userId}`;
         response = await fetch(endpoint, {
@@ -546,7 +544,6 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
         const data = await response.json();
         const userData = data.data || data;
 
-        // Check if it's an org by looking for org-specific fields
         const isOrgProfile = userData.organizationType !== undefined;
 
         if (isOrgProfile) {

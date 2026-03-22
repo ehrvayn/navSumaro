@@ -10,6 +10,7 @@ import {
   Type,
 } from "lucide-react";
 import { useEvent } from "../../context/EventContex";
+import { useCurrentUser } from "../../context/CurrentUserContex";
 
 interface AddEventModalProps {
   onClose: () => void;
@@ -22,9 +23,10 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [color, setColor] = useState("#f97316");
+  const [loading, setLoading] = useState(false);
   const { activePage } = usePage();
-
-  const { handleCreateEvent } = useEvent();
+  const { handleCreateEvent, getEvents } = useEvent();
+  const { currentUser } = useCurrentUser();
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -39,21 +41,74 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
     }
   }, [activePage]);
 
-  const handleCreate = () => {
-    if (!title.trim() || !startTime) return;
-    const d = new Date(startTime);
-    handleCreateEvent({
-      title,
-      description,
-      location,
-      startTime,
-      endTime: endTime || undefined,
-      organizerId: "org-001",
-      color,
-      month: d.toLocaleString("default", { month: "short" }).toUpperCase(),
-      day: d.getDate(),
-    });
-    onClose();
+  const handleCreate = async () => {
+    if (!title.trim() || !startTime || !currentUser?.id) return;
+
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const date = new Date(startTime);
+      const monthName = date.toLocaleString("default", { month: "long" });
+      const day = date.getDate();
+
+      const timeToAmPm = (time: string) => {
+        const [hours, minutes] = time.split(":");
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes}${ampm}`;
+      };
+
+      const eventData = {
+        title,
+        description,
+        location,
+        month: monthName,
+        day,
+        startTime: timeToAmPm(startTime.split("T")[1]),
+        endTime: endTime ? timeToAmPm(endTime.split("T")[1]) : undefined,
+        color,
+      };
+
+      const response = await fetch(
+        `http://localhost:5000/org/event/create/${currentUser.id}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(eventData),
+        },
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          handleCreateEvent({
+            ...result.data,
+            organizerId: currentUser.id,
+            organizer: {
+              id: currentUser.id,
+              name: (currentUser as any).name || "",
+              avatar: currentUser.avatar,
+              organizationType:
+                (currentUser as any).organizationType || "student-org",
+              isVerified: currentUser.isVerified,
+            },
+          });
+          await getEvents();
+          onClose();
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      alert("Failed to create event");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const colorOptions = [
@@ -161,32 +216,12 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
                   Start Time
                 </span>
               </div>
-              <div
-                className="input-base text-xs cursor-pointer flex items-center gap-2"
-                onClick={() =>
-                  (
-                    document.getElementById("startTime") as HTMLInputElement
-                  )?.showPicker()
-                }
-              >
-                <Clock size={12} className="text-text-muted shrink-0" />
-                <span
-                  className={
-                    startTime ? "text-text-primary" : "text-text-muted"
-                  }
-                >
-                  {startTime
-                    ? new Date(startTime).toLocaleString()
-                    : "Pick a date & time"}
-                </span>
-                <input
-                  id="startTime"
-                  type="datetime-local"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="sr-only"
-                />
-              </div>
+              <input
+                type="datetime-local"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="input-base"
+              />
             </div>
             <div className="flex flex-1 flex-col gap-1.5">
               <div className="flex items-center gap-1.5">
@@ -198,33 +233,12 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
                   </span>
                 </span>
               </div>
-              <div
-                className="input-base text-xs cursor-pointer flex items-center gap-2"
-                onClick={() =>
-                  (
-                    document.getElementById("endTime") as HTMLInputElement
-                  )?.showPicker()
-                }
-              >
-                <Clock
-                  size={12}
-                  className="text-text-muted shrink-0 opacity-50"
-                />
-                <span
-                  className={endTime ? "text-text-primary" : "text-text-muted"}
-                >
-                  {endTime
-                    ? new Date(endTime).toLocaleString()
-                    : "Pick a date & time"}
-                </span>
-                <input
-                  id="endTime"
-                  type="datetime-local"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="sr-only"
-                />
-              </div>
+              <input
+                type="datetime-local"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="input-base"
+              />
             </div>
           </div>
 
@@ -267,10 +281,13 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleCreate} disabled={!title.trim() || !startTime}>
+          <Button
+            onClick={handleCreate}
+            disabled={!title.trim() || !startTime || loading}
+          >
             <span className="flex items-center gap-1.5">
               <Rocket size={14} />
-              Post Event
+              {loading ? "Creating..." : "Post Event"}
             </span>
           </Button>
         </div>

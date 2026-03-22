@@ -93,28 +93,41 @@ function MyProfilePage() {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const decoded = jwtDecode<JWTPayload>(token);
-
       const isAccountField = field in accountDraft;
       const value = isAccountField
         ? accountDraft[field as keyof typeof accountDraft]
         : draft[field as keyof typeof draft];
 
-      const endpoint = isOrganization
-        ? `http://localhost:5000/org/updateOrg/${decoded.id}`
-        : `http://localhost:5000/user/updateUser/${decoded.id}`;
+      let response;
 
-      const response = await fetch(endpoint, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type: field,
-          value1: value,
-        }),
-      });
+      if (isOrganization) {
+        response = await fetch(`http://localhost:5000/org/update`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            [field]: value,
+          }),
+        });
+      } else {
+        const decoded = jwtDecode<JWTPayload>(token);
+        response = await fetch(
+          `http://localhost:5000/user/updateUser/${decoded.id}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              type: field,
+              value1: value,
+            }),
+          },
+        );
+      }
 
       if (response.ok) {
         const data = await response.json();
@@ -145,7 +158,11 @@ function MyProfilePage() {
       icon: <School size={13} />,
     },
     { key: "program", label: "Program", icon: <BookOpen size={13} /> },
-    { key: "yearLevel", label: "Year Level", icon: <GraduationCap size={13} /> },
+    {
+      key: "yearLevel",
+      label: "Year Level",
+      icon: <GraduationCap size={13} />,
+    },
   ];
 
   const orgFields: {
@@ -159,8 +176,16 @@ function MyProfilePage() {
       label: "University",
       icon: <School size={13} />,
     },
-    { key: "organizationType", label: "Organization Type", icon: <BookOpen size={13} /> },
-    { key: "description", label: "Description", icon: <GraduationCap size={13} /> },
+    {
+      key: "organizationType",
+      label: "Organization Type",
+      icon: <BookOpen size={13} />,
+    },
+    {
+      key: "description",
+      label: "Description",
+      icon: <GraduationCap size={13} />,
+    },
   ];
 
   const fields = isOrganization ? orgFields : studentFields;
@@ -404,8 +429,12 @@ function MyProfilePage() {
                       ) : (
                         <p className="text-[12px] text-text-primary truncate">
                           {isOrganization
-                            ? (currentUser as any)[key as keyof typeof currentUser]
-                            : (currentUser[key as keyof typeof currentUser] as string)}
+                            ? (currentUser as any)[
+                                key as keyof typeof currentUser
+                              ]
+                            : (currentUser[
+                                key as keyof typeof currentUser
+                              ] as string)}
                         </p>
                       )}
                     </div>

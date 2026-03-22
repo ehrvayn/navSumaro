@@ -107,6 +107,7 @@ export interface Event {
   month: string;
   day: number;
   organizerId: string;
+  organizer: Organization;
   color: string;
   description?: string;
   location?: string;

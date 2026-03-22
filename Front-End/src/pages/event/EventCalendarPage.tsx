@@ -1,22 +1,55 @@
 import React, { useState } from "react";
-import { Filter, CalendarDays, ChevronDown, Plus, Search, X } from "lucide-react";
+import {
+  Filter,
+  CalendarDays,
+  ChevronDown,
+  Plus,
+  Search,
+  X,
+} from "lucide-react";
 import { Event } from "../../types";
-import { mockOrganizations } from "../../data/mockOrganization";
+import { useCurrentUser } from "../../context/CurrentUserContex";
 import { useEvent } from "../../context/EventContex";
 import EventCard from "./EventCard";
 
 type EventFilter = "all" | "student-org" | "department" | "institution";
 
 const filters: { value: EventFilter; label: string; color: string }[] = [
-  { value: "all", label: "All Events", color: "text-brand border-brand bg-brand/10" },
-  { value: "student-org", label: "Student Orgs", color: "text-orange-400 border-orange-400/30 bg-orange-400/10" },
-  { value: "department", label: "Departments", color: "text-blue-400 border-blue-400/30 bg-blue-400/10" },
-  { value: "institution", label: "Institution", color: "text-purple-400 border-purple-400/30 bg-purple-400/10" },
+  {
+    value: "all",
+    label: "All Events",
+    color: "text-brand border-brand bg-brand/10",
+  },
+  {
+    value: "student-org",
+    label: "Student Orgs",
+    color: "text-orange-400 border-orange-400/30 bg-orange-400/10",
+  },
+  {
+    value: "department",
+    label: "Departments",
+    color: "text-blue-400 border-blue-400/30 bg-blue-400/10",
+  },
+  {
+    value: "institution",
+    label: "Institution",
+    color: "text-purple-400 border-purple-400/30 bg-purple-400/10",
+  },
 ];
 
 const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
 const CalendarPage: React.FC = () => {
@@ -25,17 +58,32 @@ const CalendarPage: React.FC = () => {
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState<number>(
+    new Date().getFullYear(),
+  );
   const { setShowCreateEvent, events } = useEvent();
+  const { currentUser } = useCurrentUser();
 
   const filtered = events.filter((e) => {
     if (activeFilter !== "all") {
-      const org = mockOrganizations.find((o) => o.id === e.organizerId);
-      if (org?.organizationType !== activeFilter) return false;
+      if (e.organizer?.organizationType !== activeFilter) return false;
     }
     if (selectedMonth !== null) {
-      const d = new Date(e.startTime);
-      if (d.getMonth() !== selectedMonth || d.getFullYear() !== selectedYear) return false;
+      const monthIndex = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ].indexOf(e.month);
+      if (monthIndex !== selectedMonth) return false;
     }
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -49,7 +97,21 @@ const CalendarPage: React.FC = () => {
   });
 
   const grouped = filtered.reduce<Record<string, Event[]>>((acc, ev) => {
-    const d = new Date(ev.startTime);
+    const monthIndex = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ].indexOf(ev.month);
+    const d = new Date(2026, monthIndex, ev.day);
     const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, "0")}`;
     if (!acc[key]) acc[key] = [];
     acc[key].push(ev);
@@ -61,7 +123,8 @@ const CalendarPage: React.FC = () => {
   );
 
   const activeFilterObj = filters.find((f) => f.value === activeFilter)!;
-  const hasActiveFilters = activeFilter !== "all" || selectedMonth !== null || search;
+  const hasActiveFilters =
+    activeFilter !== "all" || selectedMonth !== null || search;
 
   const clearAll = () => {
     setActiveFilter("all");
@@ -70,12 +133,13 @@ const CalendarPage: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-60px)] overflow-y-auto" style={{ scrollbarGutter: "stable both-edges" }}>
+    <div
+      className="h-[calc(100vh-60px)] overflow-y-auto"
+      style={{ scrollbarGutter: "stable both-edges" }}
+    >
       <div className="max-w-6xl mx-auto px-1 lg:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6 items-start">
-
           <aside className="lg:sticky lg:top-0 py-8 space-y-4">
-
             <div className="flex items-center gap-3 pb-2">
               <div className="w-10 h-10 rounded-md bg-brand/10 flex items-center justify-center text-brand shrink-0">
                 <CalendarDays size={20} strokeWidth={2.5} />
@@ -91,7 +155,10 @@ const CalendarPage: React.FC = () => {
             </div>
 
             <div className="relative">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              <Search
+                size={13}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+              />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -113,7 +180,9 @@ const CalendarPage: React.FC = () => {
                   <Filter size={12} />
                   <span>Filter by type</span>
                   {activeFilter !== "all" && (
-                    <span className="bg-white/20 px-1.5 py-0.5 rounded-md text-[9px]">1</span>
+                    <span className="bg-white/20 px-1.5 py-0.5 rounded-md text-[9px]">
+                      1
+                    </span>
                   )}
                 </div>
                 <ChevronDown
@@ -136,11 +205,17 @@ const CalendarPage: React.FC = () => {
                     >
                       <span
                         className={`w-1.5 h-1.5 rounded-full ${
-                          activeFilter === f.value ? "opacity-100" : "opacity-30"
+                          activeFilter === f.value
+                            ? "opacity-100"
+                            : "opacity-30"
                         } ${
-                          f.value === "all" ? "bg-brand" :
-                          f.value === "student-org" ? "bg-orange-400" :
-                          f.value === "department" ? "bg-blue-400" : "bg-purple-400"
+                          f.value === "all"
+                            ? "bg-brand"
+                            : f.value === "student-org"
+                              ? "bg-orange-400"
+                              : f.value === "department"
+                                ? "bg-blue-400"
+                                : "bg-purple-400"
                         }`}
                       />
                       {f.label}
@@ -167,7 +242,9 @@ const CalendarPage: React.FC = () => {
                       : "Filter by month"}
                   </span>
                   {selectedMonth !== null && (
-                    <span className="bg-white/20 px-1.5 py-0.5 rounded-md text-[9px]">1</span>
+                    <span className="bg-white/20 px-1.5 py-0.5 rounded-md text-[9px]">
+                      1
+                    </span>
                   )}
                 </div>
                 <ChevronDown
@@ -185,7 +262,9 @@ const CalendarPage: React.FC = () => {
                     >
                       ‹
                     </button>
-                    <span className="text-xs font-black text-text-primary">{selectedYear}</span>
+                    <span className="text-xs font-black text-text-primary">
+                      {selectedYear}
+                    </span>
                     <button
                       onClick={() => setSelectedYear((y) => y + 1)}
                       className="w-7 h-7 rounded-lg bg-base-hover text-text-muted hover:text-text-primary transition-all text-sm font-bold flex items-center justify-center"
@@ -198,7 +277,9 @@ const CalendarPage: React.FC = () => {
                     {MONTHS.map((m, i) => (
                       <button
                         key={m}
-                        onClick={() => setSelectedMonth(selectedMonth === i ? null : i)}
+                        onClick={() =>
+                          setSelectedMonth(selectedMonth === i ? null : i)
+                        }
                         className={`py-1.5 rounded-lg text-[11px] font-bold transition-all ${
                           selectedMonth === i
                             ? "bg-brand text-white"
@@ -222,20 +303,27 @@ const CalendarPage: React.FC = () => {
               )}
             </div>
 
-            <button
-              onClick={() => setShowCreateEvent(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-brand text-white rounded-md text-xs font-bold hover:bg-brand/90 transition-all shadow-lg shadow-brand/20 active:scale-95"
-            >
-              <Plus size={14} />
-              Post an Event
-            </button>
+            {currentUser?.accountType === "organization" && (
+              <button
+                onClick={() => setShowCreateEvent(true)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-brand text-white rounded-md text-xs font-bold hover:bg-brand/90 transition-all shadow-lg shadow-brand/20 active:scale-95"
+              >
+                <Plus size={14} />
+                Post an Event
+              </button>
+            )}
 
             {hasActiveFilters && (
               <div className="flex flex-wrap gap-1.5">
                 {activeFilter !== "all" && (
-                  <span className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-semibold ${activeFilterObj.color}`}>
+                  <span
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-semibold ${activeFilterObj.color}`}
+                  >
                     {activeFilterObj.label}
-                    <button onClick={() => setActiveFilter("all")} className="hover:opacity-70">
+                    <button
+                      onClick={() => setActiveFilter("all")}
+                      className="hover:opacity-70"
+                    >
                       <X size={10} />
                     </button>
                   </span>
@@ -243,7 +331,10 @@ const CalendarPage: React.FC = () => {
                 {selectedMonth !== null && (
                   <span className="flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-semibold text-brand border-brand/30 bg-brand/10">
                     {MONTHS[selectedMonth]} {selectedYear}
-                    <button onClick={() => setSelectedMonth(null)} className="hover:opacity-70">
+                    <button
+                      onClick={() => setSelectedMonth(null)}
+                      className="hover:opacity-70"
+                    >
                       <X size={10} />
                     </button>
                   </span>
@@ -265,9 +356,13 @@ const CalendarPage: React.FC = () => {
                   <CalendarDays size={24} strokeWidth={1.5} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-text-primary">No events found</p>
+                  <p className="text-sm font-bold text-text-primary">
+                    No events found
+                  </p>
                   <p className="text-xs text-text-muted mt-1 max-w-[200px] leading-relaxed">
-                    {search ? "Try a different search term." : "Try adjusting your filters."}
+                    {search
+                      ? "Try a different search term."
+                      : "Try adjusting your filters."}
                   </p>
                 </div>
                 {hasActiveFilters && (
@@ -295,7 +390,8 @@ const CalendarPage: React.FC = () => {
                         </span>
                         <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
                         <span className="text-[10px] text-text-muted shrink-0">
-                          {groupEvents.length} event{groupEvents.length > 1 ? "s" : ""}
+                          {groupEvents.length} event
+                          {groupEvents.length > 1 ? "s" : ""}
                         </span>
                       </div>
                       <div className="grid grid-cols-1 gap-2.5">

@@ -33,11 +33,24 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
   const { currentUser } = useCurrentUser();
   const { socket, setThreads } = useMessages();
 
+  const participant = conversation.participant || conversation;
+  const isOrgParticipant = participant?.accountType === "organization";
+  const isOnline = !isGroup && (participant?.isOnline || conversation.isOnline);
+
   const headerName = isGroup
     ? conversation.title
-    : `${conversation.participant?.firstname || conversation.firstname} ${conversation.participant?.lastname || conversation.lastname}`;
-  const isOnline =
-    !isGroup && (conversation.participant?.isOnline || conversation.isOnline);
+    : isOrgParticipant
+      ? participant?.firstname || "User"
+      : `${participant?.firstname || "User"} ${participant?.lastname || ""}`;
+
+  const getInitials = () => {
+    if (isOrgParticipant) {
+      return participant?.firstname?.[0] ?? "";
+    }
+    return (
+      (participant?.firstname?.[0] ?? "") + (participant?.lastname?.[0] ?? "")
+    );
+  };
 
   useEffect(() => {
     socket.emit("join_conversation", threadIdRef.current);
@@ -184,7 +197,7 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
   if (!currentUser) return null;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] animate-fadeIn md:h-[calc(100vh-60px)]">
+    <div className="flex flex-col h-[calc(100vh-120px)]  md:h-[calc(100vh-60px)]">
       <div className="bg-base-surface border-b border-border px-4 py-3 flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3">
           <button
@@ -194,13 +207,7 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
             <ArrowLeft size={18} />
           </button>
           <div className="relative inline-flex">
-            <Avatar
-              initials={
-                (conversation.firstname?.[0] ?? "") +
-                (conversation.lastname?.[0] ?? "")
-              }
-              size="xs"
-            />
+            <Avatar initials={getInitials()} size="xs" />
             {isOnline && (
               <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-base-surface" />
             )}
@@ -264,15 +271,7 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
                 key={m.id}
                 className={`flex gap-2 items-end ${isMe ? "flex-row-reverse" : ""}`}
               >
-                {!isMe && (
-                  <Avatar
-                    initials={
-                      (conversation.firstname?.[0] ?? "") +
-                      (conversation.lastname?.[0] ?? "")
-                    }
-                    size="xs"
-                  />
-                )}
+                {!isMe && <Avatar initials={getInitials()} size="xs" />}
                 <div
                   className={`px-3 py-2 text-xs rounded-2xl max-w-[70%] ${isMe ? "bg-orange-600 text-white rounded-br-none" : "bg-white/[0.05] border border-white/10 text-slate-200 rounded-bl-none"}`}
                 >

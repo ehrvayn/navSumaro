@@ -5,7 +5,6 @@ import {
   EyeOff,
   GraduationCap,
   Building2,
-  ChevronLeft,
 } from "lucide-react";
 import { useState } from "react";
 import { useLogin } from "../../context/LoginContex";
@@ -20,26 +19,6 @@ function RegisterPage() {
   const handleStudentRegister = async (data: any) => {
     try {
       const response = await fetch("http://localhost:5000/user/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (response.ok) {
-        const result = await response.json();
-        if (!result.success) {
-          alert(result.message);
-          return;
-        }
-        setRegistered(true);
-      }
-    } catch (error) {
-      console.error("Register error", error);
-    }
-  };
-
-  const handleOrgRegister = async (data: any) => {
-    try {
-      const response = await fetch("http://localhost:5000/organization/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -166,7 +145,7 @@ function RegisterPage() {
       {accountType === "organization" && (
         <RegisterOrgPage
           onBack={() => setAccountType("")}
-          onRegister={handleOrgRegister}
+          onRegisterSuccess={() => setRegistered(true)}
         />
       )}
     </div>

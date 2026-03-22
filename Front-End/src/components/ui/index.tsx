@@ -52,7 +52,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   return (
     <div className="relative shrink-0">
       <div
-        className={`rounded-md flex hover:border-[2px] border-orange-500 items-center justify-center font-bold ${avatarSizes[size]} ${className}`}
+        className={`rounded-full flex hover:border-[2px] border-orange-500 items-center justify-center font-bold ${avatarSizes[size]} ${className}`}
         style={{ backgroundColor, color: "#fff" }}
       >
         {displayInitials}

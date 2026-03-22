@@ -16,9 +16,23 @@ const orgTypeLabel: Record<string, string> = {
 };
 
 const EventCard: React.FC<{ event: Event }> = ({ event }) => {
-  const org = mockOrganizations.find((o) => o.id === event.organizerId);
-  const d = new Date(event.startTime);
-  const month = d.toLocaleString("default", { month: "short" }).toUpperCase();
+  const org = event.organizer;
+  const monthIndex = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ].indexOf(event.month);
+  const d = new Date(2026, monthIndex, event.day);
+  const month = event.month.slice(0, 3).toUpperCase();
   const [viewDetails, setViewDetails] = useState(false);
 
   const badgeClass =
@@ -87,10 +101,10 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
 
         <div className="flex items-center gap-2 mb-3">
           <div
-            className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold text-white shrink-0 shadow-sm"
+            className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0 shadow-sm"
             style={{ backgroundColor: event.color }}
           >
-            {org?.avatar?.charAt(0) ?? "?"}
+            {org?.name[0]}
           </div>
           <p className="text-xs font-medium text-text-muted italic">
             {org?.name ?? "Unknown Organization"}
@@ -113,18 +127,14 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
           <div className="flex items-center gap-1.5 text-[11px] font-medium text-text-muted">
             <Clock size={13} className="text-brand" />
             <span>
-              {new Date(event.startTime).toLocaleDateString("default", {
+              {d.toLocaleDateString("default", {
                 month: "short",
                 day: "numeric",
               })}
               {" · "}
-              {new Date(event.startTime).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {event.startTime}
               <span className="text-lg"> | </span>
-              {event.endTime &&
-                `${new Date(event.endTime).toLocaleDateString("default", { month: "short", day: "numeric" })} · ${new Date(event.endTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
+              {event.endTime && event.endTime}
             </span>
           </div>
           {event.location && (

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { IoReturnDownBackSharp } from "react-icons/io5";
 import { useState } from "react";
+import { useLogin } from "../../context/LoginContex";
 
 interface RegisterStudentPageProps {
   onBack: () => void;
@@ -29,6 +30,7 @@ function RegisterStudentPage({ onBack, onRegister }: RegisterStudentPageProps) {
   const [program, setProgram] = useState("");
   const [yearLevel, setYearLevel] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { setIsRegister } = useLogin();
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -235,11 +237,7 @@ function RegisterStudentPage({ onBack, onRegister }: RegisterStudentPageProps) {
                 onClick={() => setShowConfirmPassword((p) => !p)}
                 className="absolute right-3 text-text-muted hover:text-text-primary transition-colors"
               >
-                {showConfirmPassword ? (
-                  <EyeOff size={14} />
-                ) : (
-                  <Eye size={14} />
-                )}
+                {showConfirmPassword ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </div>
             {errors.confirmPassword && (
@@ -294,8 +292,7 @@ function RegisterStudentPage({ onBack, onRegister }: RegisterStudentPageProps) {
                 value={program}
                 onChange={(e) => {
                   setProgram(e.target.value);
-                  if (errors.program)
-                    setErrors((p) => ({ ...p, program: "" }));
+                  if (errors.program) setErrors((p) => ({ ...p, program: "" }));
                 }}
                 placeholder="e.g., BS Information Technology"
                 className={inputClass("program")}
@@ -341,7 +338,9 @@ function RegisterStudentPage({ onBack, onRegister }: RegisterStudentPageProps) {
       <div className="flex items-center flex-col gap-1">
         <button
           className="w-full bg-brand mb-4 hover:bg-orange-600 text-white font-bold text-[13px] py-2.5 rounded-md transition-colors"
-          onClick={handleRegister}
+          onClick={() => {
+            setIsRegister(false)
+            handleRegister}}
         >
           Create Account
         </button>
@@ -350,7 +349,7 @@ function RegisterStudentPage({ onBack, onRegister }: RegisterStudentPageProps) {
           className="w-full hover:bg-base-hover border border-border text-text-secondary font-semibold text-[13px] py-2.5 rounded-md flex items-center justify-center gap-2"
           onClick={onBack}
         >
-          <IoReturnDownBackSharp size={20}/>
+          <IoReturnDownBackSharp size={20} />
           Back
         </button>
       </div>
