@@ -23,6 +23,7 @@ interface Draft {
   university: string;
   program?: string;
   organizationType?: string;
+  description: string;
   yearLevel?: number;
   isVerified: boolean;
   reputation: number;
@@ -116,6 +117,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     name: "",
     university: "",
     program: "",
+    description: "",
     organizationType: "",
     yearLevel: 0,
     isVerified: false,
@@ -556,6 +558,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
             reputation: 0,
             badges: [],
             avatar: userData.avatar,
+            description: userData.description,
           });
         } else {
           setDraft({
@@ -569,6 +572,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
             reputation: userData.reputation,
             badges: userData.badges,
             avatar: userData.avatar,
+            description: userData.description,
           });
         }
       }

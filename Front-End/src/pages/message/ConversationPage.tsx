@@ -3,6 +3,8 @@ import { Avatar } from "../../components/ui";
 import { useCurrentUser } from "../../context/CurrentUserContex";
 import { useMessages } from "../../context/MessageContext";
 import DeleteConversationModal from "../../components/modals/DeleteConversationModal";
+import { usePage } from "../../context/PageContex";
+import { usePosts } from "../../context/PostContext";
 import {
   SendHorizontal,
   ArrowLeft,
@@ -32,6 +34,8 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
   const threadIdRef = useRef<string>(conversation.id);
   const { currentUser } = useCurrentUser();
   const { socket, setThreads } = useMessages();
+  const { setActivePage } = usePage();
+  const { getUserData, setPostUserProfileId } = usePosts();
 
   const participant = conversation.participant || conversation;
   const isOrgParticipant = participant?.accountType === "organization";
@@ -238,7 +242,20 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
               onClick={(e) => e.stopPropagation()}
               className="absolute right-0 mt-2 w-60 bg-base-surface border border-border rounded-md shadow-lg z-50"
             >
-              <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-gray-700">
+              <button
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-gray-700"
+                onClick={() => {
+                  setPostUserProfileId(
+                    conversation.participantId || conversation.participant?.id,
+                  );
+                  getUserData(
+                    conversation.participantId || conversation.participant?.id,
+                  );
+                  onBack();
+                  setOpenMenu(!openMenu);
+                  setActivePage("profile");
+                }}
+              >
                 <User size={20} />
                 View Profile
               </button>

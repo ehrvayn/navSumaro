@@ -5,8 +5,9 @@ import {
   BookOpen,
   Trophy,
   School,
+  Type,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePosts } from "../context/PostContext";
 import { Post } from "../types";
 import Feed from "../components/feed/Feed";
@@ -16,6 +17,7 @@ import { AiFillMessage } from "react-icons/ai";
 import { useMessages } from "../context/MessageContext";
 import ConversationPage from "./message/ConversationPage";
 import { Message } from "../types";
+import { ChevronDown } from "lucide-react";
 
 function ProfilePage() {
   const {
@@ -29,6 +31,21 @@ function ProfilePage() {
   const { setSelectedConversation, selectedConversation, Messages } =
     useMessages();
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [showProfileInfo, setShowProfileInfo] = useState(true);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setShowProfileInfo(true);
+      } else {
+        setShowProfileInfo(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   if (!draft) return null;
 
   if (selectedConversation) {
@@ -66,6 +83,11 @@ function ProfilePage() {
         {
           key: "organizationType",
           label: "Type",
+          icon: <Type size={13} />,
+        },
+        {
+          key: "description",
+          label: "Description",
           icon: <BookOpen size={13} />,
         },
       ]
@@ -140,7 +162,7 @@ function ProfilePage() {
 
   return (
     <div className="h-[calc(100vh-60px)] overflow-y-auto bg-base">
-      <div className="max-w-[70%] mx-auto px-4 py-6">
+      <div className="lg:max-w-[70%] max-w-[98%] mx-auto py-6">
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           <div className="w-full lg:w-[320px] lg:sticky lg:top-6 flex flex-col gap-4 shrink-0">
             <div className="bg-base-elevated border border-border rounded-md overflow-hidden">
@@ -227,26 +249,41 @@ function ProfilePage() {
             )}
 
             <div className="bg-base-elevated border border-border rounded-md overflow-hidden">
-              <div className="px-4 py-3 border-b border-border">
+              <button
+                onClick={() => setShowProfileInfo(!showProfileInfo)}
+                className="w-full px-4 py-3 border-b border-border flex items-center justify-between hover:bg-base-hover transition-colors"
+              >
                 <h2 className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
                   Profile Info
                 </h2>
-              </div>
-              <div className="divide-y divide-border">
-                {fields.map(({ key, label, icon }) => (
-                  <div key={key} className="px-4 py-3 flex items-center gap-3">
-                    <div className="text-text-muted shrink-0">{icon}</div>
-                    <div>
-                      <p className="text-[9px] text-text-muted uppercase tracking-wider font-semibold">
-                        {label}
-                      </p>
-                      <p className="text-[12px] text-text-primary font-medium">
-                        {String(draft[key] || "N/A")}
-                      </p>
+                <div className="h-[1px] flex-1 lg:hidden block bg-gray-500/50 mx-3 rounded-full" />
+                <ChevronDown
+                  size={20}
+                  className={`lg:hidden transition-transform ${
+                    showProfileInfo ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              {showProfileInfo && (
+                <div className="divide-y divide-border">
+                  {fields.map(({ key, label, icon }) => (
+                    <div
+                      key={key}
+                      className="px-4 py-3 flex items-center gap-3"
+                    >
+                      <div className="text-text-muted shrink-0">{icon}</div>
+                      <div>
+                        <p className="text-[9px] text-text-muted uppercase tracking-wider font-semibold">
+                          {label}
+                        </p>
+                        <p className={`text-justify text-[12px] text-text-primary font-medium`}>
+                          {String(draft[key] || "N/A")}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {!isOrg && (

@@ -7,18 +7,23 @@ import {
   BookOpen,
   School,
   User,
-  ChevronLeft,
 } from "lucide-react";
 import { IoReturnDownBackSharp } from "react-icons/io5";
 import { useState } from "react";
 import { useLogin } from "../../context/LoginContex";
+import { FaCheckCircle } from "react-icons/fa";
 
 interface RegisterStudentPageProps {
   onBack: () => void;
   onRegister: (data: any) => void;
+  onRegisterSuccess: () => void;
 }
 
-function RegisterStudentPage({ onBack, onRegister }: RegisterStudentPageProps) {
+function RegisterStudentPage({
+  onBack,
+  onRegister,
+  onRegisterSuccess,
+}: RegisterStudentPageProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -59,14 +64,15 @@ function RegisterStudentPage({ onBack, onRegister }: RegisterStudentPageProps) {
     return newErrors;
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
     setErrors({});
-    onRegister({
+
+    const data = {
       email,
       password,
       firstname,
@@ -75,7 +81,26 @@ function RegisterStudentPage({ onBack, onRegister }: RegisterStudentPageProps) {
       program,
       yearLevel,
       accountType: "student",
-    });
+    };
+
+    try {
+      const response = await fetch("http://localhost:5000/user/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        alert(result.message || "Registration failed");
+        return;
+      }
+      onRegisterSuccess();
+    } catch (error) {
+      console.error("Register error:", error);
+      alert("Something went wrong");
+    }
   };
 
   const inputClass = (field: string) =>
@@ -93,267 +118,272 @@ function RegisterStudentPage({ onBack, onRegister }: RegisterStudentPageProps) {
     }`;
 
   return (
-    <div className="w-full max-w-[760px] mx-auto flex flex-col gap-6">
-      <div className="flex pb-10 flex-col gap-1">
-        <h1 className="text-[50px] self-center font-black text-text-primary">
-          Register
-        </h1>
-        <span className="text-sm self-center text-brand">Student</span>
-      </div>
+    <>
+      <div className="w-full max-w-[760px] mx-auto flex flex-col gap-6">
+        <div className="flex pb-10 flex-col gap-1">
+          <h1 className="text-[50px] self-center font-black text-text-primary">
+            Register
+          </h1>
+          <span className="text-sm self-center text-brand">Student</span>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="flex flex-col gap-4">
-          <p className="text-[10px] font-bold self-center text-text-muted uppercase tracking-widest mb-[-10px]">
-            Personal Info
-          </p>
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col gap-4">
+            <p className="text-[10px] font-bold self-center text-text-muted uppercase tracking-widest mb-[-10px]">
+              Personal Info
+            </p>
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex flex-col gap-1.5 flex-1">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col gap-1.5 flex-1">
+                <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+                  First Name
+                </label>
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-text-muted pointer-events-none">
+                    <User size={14} />
+                  </span>
+                  <input
+                    type="text"
+                    value={firstname}
+                    onChange={(e) => {
+                      setFirstname(e.target.value);
+                      if (errors.firstname)
+                        setErrors((p) => ({ ...p, firstname: "" }));
+                    }}
+                    placeholder="Juan"
+                    className={inputClass("firstname")}
+                  />
+                </div>
+                {errors.firstname && (
+                  <p className="text-[11px] text-red-400">{errors.firstname}</p>
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5 flex-1">
+                <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+                  Last Name
+                </label>
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-text-muted pointer-events-none">
+                    <User size={14} />
+                  </span>
+                  <input
+                    type="text"
+                    value={lastname}
+                    onChange={(e) => {
+                      setLastname(e.target.value);
+                      if (errors.lastname)
+                        setErrors((p) => ({ ...p, lastname: "" }));
+                    }}
+                    placeholder="Dela Cruz"
+                    className={inputClass("lastname")}
+                  />
+                </div>
+                {errors.lastname && (
+                  <p className="text-[11px] text-red-400">{errors.lastname}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                First Name
+                Email
               </label>
               <div className="relative flex items-center">
                 <span className="absolute left-3 text-text-muted pointer-events-none">
-                  <User size={14} />
+                  <Mail size={14} />
                 </span>
                 <input
-                  type="text"
-                  value={firstname}
+                  type="email"
+                  value={email}
                   onChange={(e) => {
-                    setFirstname(e.target.value);
-                    if (errors.firstname)
-                      setErrors((p) => ({ ...p, firstname: "" }));
+                    setEmail(e.target.value);
+                    if (errors.email) setErrors((p) => ({ ...p, email: "" }));
                   }}
-                  placeholder="Juan"
-                  className={inputClass("firstname")}
+                  placeholder="example@ncf.edu.ph"
+                  className={inputClass("email")}
                 />
               </div>
-              {errors.firstname && (
-                <p className="text-[11px] text-red-400">{errors.firstname}</p>
+              {errors.email && (
+                <p className="text-[11px] text-red-400">{errors.email}</p>
               )}
             </div>
-            <div className="flex flex-col gap-1.5 flex-1">
+
+            <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                Last Name
+                Password
               </label>
               <div className="relative flex items-center">
                 <span className="absolute left-3 text-text-muted pointer-events-none">
-                  <User size={14} />
+                  <Lock size={14} />
                 </span>
                 <input
-                  type="text"
-                  value={lastname}
+                  type={showPassword ? "text" : "password"}
+                  value={password}
                   onChange={(e) => {
-                    setLastname(e.target.value);
-                    if (errors.lastname)
-                      setErrors((p) => ({ ...p, lastname: "" }));
+                    setPassword(e.target.value);
+                    if (errors.password)
+                      setErrors((p) => ({ ...p, password: "" }));
                   }}
-                  placeholder="Dela Cruz"
-                  className={inputClass("lastname")}
+                  placeholder="••••••••"
+                  className={inputClassPr("password")}
                 />
+                <button
+                  onClick={() => setShowPassword((p) => !p)}
+                  className="absolute right-3 text-text-muted hover:text-text-primary transition-colors"
+                >
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
               </div>
-              {errors.lastname && (
-                <p className="text-[11px] text-red-400">{errors.lastname}</p>
+              {errors.password && (
+                <p className="text-[11px] text-red-400">{errors.password}</p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+                Confirm Password
+              </label>
+              <div className="relative flex items-center">
+                <span className="absolute left-3 text-text-muted pointer-events-none">
+                  <Lock size={14} />
+                </span>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    if (errors.confirmPassword)
+                      setErrors((p) => ({ ...p, confirmPassword: "" }));
+                  }}
+                  placeholder="••••••••"
+                  className={inputClassPr("confirmPassword")}
+                />
+                <button
+                  onClick={() => setShowConfirmPassword((p) => !p)}
+                  className="absolute right-3 text-text-muted hover:text-text-primary transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={14} />
+                  ) : (
+                    <Eye size={14} />
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-[11px] text-red-400">
+                  {errors.confirmPassword}
+                </p>
               )}
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-              Email
-            </label>
-            <div className="relative flex items-center">
-              <span className="absolute left-3 text-text-muted pointer-events-none">
-                <Mail size={14} />
-              </span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (errors.email) setErrors((p) => ({ ...p, email: "" }));
-                }}
-                placeholder="example@ncf.edu.ph"
-                className={inputClass("email")}
-              />
-            </div>
-            {errors.email && (
-              <p className="text-[11px] text-red-400">{errors.email}</p>
-            )}
-          </div>
+          <div className="flex flex-col gap-4">
+            <p className="text-[10px] font-bold self-center text-text-muted uppercase tracking-widest mb-[-10px]">
+              Academic Info
+            </p>
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-              Password
-            </label>
-            <div className="relative flex items-center">
-              <span className="absolute left-3 text-text-muted pointer-events-none">
-                <Lock size={14} />
-              </span>
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (errors.password)
-                    setErrors((p) => ({ ...p, password: "" }));
-                }}
-                placeholder="••••••••"
-                className={inputClassPr("password")}
-              />
-              <button
-                onClick={() => setShowPassword((p) => !p)}
-                className="absolute right-3 text-text-muted hover:text-text-primary transition-colors"
-              >
-                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-              </button>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+                University
+              </label>
+              <div className="relative flex items-center">
+                <span className="absolute left-3 text-text-muted pointer-events-none">
+                  <School size={14} />
+                </span>
+                <input
+                  type="text"
+                  value={university}
+                  onChange={(e) => {
+                    setUniversity(e.target.value);
+                    if (errors.university)
+                      setErrors((p) => ({ ...p, university: "" }));
+                  }}
+                  placeholder="e.g., Naga College Foundation"
+                  className={inputClass("university")}
+                />
+              </div>
+              {errors.university && (
+                <p className="text-[11px] text-red-400">{errors.university}</p>
+              )}
             </div>
-            {errors.password && (
-              <p className="text-[11px] text-red-400">{errors.password}</p>
-            )}
-          </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-              Confirm Password
-            </label>
-            <div className="relative flex items-center">
-              <span className="absolute left-3 text-text-muted pointer-events-none">
-                <Lock size={14} />
-              </span>
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  if (errors.confirmPassword)
-                    setErrors((p) => ({ ...p, confirmPassword: "" }));
-                }}
-                placeholder="••••••••"
-                className={inputClassPr("confirmPassword")}
-              />
-              <button
-                onClick={() => setShowConfirmPassword((p) => !p)}
-                className="absolute right-3 text-text-muted hover:text-text-primary transition-colors"
-              >
-                {showConfirmPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-              </button>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+                Program
+              </label>
+              <div className="relative flex items-center">
+                <span className="absolute left-3 text-text-muted pointer-events-none">
+                  <BookOpen size={14} />
+                </span>
+                <input
+                  type="text"
+                  value={program}
+                  onChange={(e) => {
+                    setProgram(e.target.value);
+                    if (errors.program)
+                      setErrors((p) => ({ ...p, program: "" }));
+                  }}
+                  placeholder="e.g., BS Information Technology"
+                  className={inputClass("program")}
+                />
+              </div>
+              {errors.program && (
+                <p className="text-[11px] text-red-400">{errors.program}</p>
+              )}
             </div>
-            {errors.confirmPassword && (
-              <p className="text-[11px] text-red-400">
-                {errors.confirmPassword}
-              </p>
-            )}
-          </div>
-        </div>
 
-        <div className="flex flex-col gap-4">
-          <p className="text-[10px] font-bold self-center text-text-muted uppercase tracking-widest mb-[-10px]">
-            Academic Info
-          </p>
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-              University
-            </label>
-            <div className="relative flex items-center">
-              <span className="absolute left-3 text-text-muted pointer-events-none">
-                <School size={14} />
-              </span>
-              <input
-                type="text"
-                value={university}
-                onChange={(e) => {
-                  setUniversity(e.target.value);
-                  if (errors.university)
-                    setErrors((p) => ({ ...p, university: "" }));
-                }}
-                placeholder="e.g., Naga College Foundation"
-                className={inputClass("university")}
-              />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+                Year Level
+              </label>
+              <div className="relative flex items-center">
+                <span className="absolute left-3 text-text-muted pointer-events-none">
+                  <GraduationCap size={14} />
+                </span>
+                <select
+                  value={yearLevel}
+                  onChange={(e) => {
+                    setYearLevel(Number(e.target.value));
+                    if (errors.yearLevel)
+                      setErrors((p) => ({ ...p, yearLevel: "" }));
+                  }}
+                  className={`w-full bg-base border rounded-md pl-9 pr-4 py-2.5 text-[13px] text-text-primary outline-none transition-colors appearance-none ${errors.yearLevel ? "border-red-500" : "border-border focus:border-brand"}`}
+                >
+                  <option value="">Select year level</option>
+                  <option value="1">1st Year</option>
+                  <option value="2">2nd Year</option>
+                  <option value="3">3rd Year</option>
+                  <option value="4">4th Year</option>
+                  <option value="5">5th Year</option>
+                </select>
+              </div>
+              {errors.yearLevel && (
+                <p className="text-[11px] text-red-400">{errors.yearLevel}</p>
+              )}
             </div>
-            {errors.university && (
-              <p className="text-[11px] text-red-400">{errors.university}</p>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-              Program
-            </label>
-            <div className="relative flex items-center">
-              <span className="absolute left-3 text-text-muted pointer-events-none">
-                <BookOpen size={14} />
-              </span>
-              <input
-                type="text"
-                value={program}
-                onChange={(e) => {
-                  setProgram(e.target.value);
-                  if (errors.program) setErrors((p) => ({ ...p, program: "" }));
-                }}
-                placeholder="e.g., BS Information Technology"
-                className={inputClass("program")}
-              />
-            </div>
-            {errors.program && (
-              <p className="text-[11px] text-red-400">{errors.program}</p>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-              Year Level
-            </label>
-            <div className="relative flex items-center">
-              <span className="absolute left-3 text-text-muted pointer-events-none">
-                <GraduationCap size={14} />
-              </span>
-              <select
-                value={yearLevel}
-                onChange={(e) => {
-                  setYearLevel(Number(e.target.value));
-                  if (errors.yearLevel)
-                    setErrors((p) => ({ ...p, yearLevel: "" }));
-                }}
-                className={`w-full bg-base border rounded-md pl-9 pr-4 py-2.5 text-[13px] text-text-primary outline-none transition-colors appearance-none ${errors.yearLevel ? "border-red-500" : "border-border focus:border-brand"}`}
-              >
-                <option value="">Select year level</option>
-                <option value="1">1st Year</option>
-                <option value="2">2nd Year</option>
-                <option value="3">3rd Year</option>
-                <option value="4">4th Year</option>
-                <option value="5">5th Year</option>
-              </select>
-            </div>
-            {errors.yearLevel && (
-              <p className="text-[11px] text-red-400">{errors.yearLevel}</p>
-            )}
           </div>
         </div>
-      </div>
 
-      <div className="flex items-center flex-col gap-1">
-        <button
-          className="w-full bg-brand mb-4 hover:bg-orange-600 text-white font-bold text-[13px] py-2.5 rounded-md transition-colors"
-          onClick={() => {
-            setIsRegister(false)
-            handleRegister}}
-        >
-          Create Account
-        </button>
-        <div className="h-px w-[80%] bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
-        <button
-          className="w-full hover:bg-base-hover border border-border text-text-secondary font-semibold text-[13px] py-2.5 rounded-md flex items-center justify-center gap-2"
-          onClick={onBack}
-        >
-          <IoReturnDownBackSharp size={20} />
-          Back
-        </button>
+        <div className="flex items-center flex-col gap-1">
+          <button
+            className="w-full bg-brand mb-4 hover:bg-orange-600 text-white font-bold text-[13px] py-2.5 rounded-md transition-colors"
+            onClick={handleRegister}
+          >
+            Create Account
+          </button>
+          <div className="h-px w-[80%] bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
+          <button
+            className="w-full hover:bg-base-hover border border-border text-text-secondary font-semibold text-[13px] py-2.5 rounded-md flex items-center justify-center gap-2"
+            onClick={onBack}
+          >
+            <IoReturnDownBackSharp size={20} />
+            Back
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

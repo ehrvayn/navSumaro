@@ -139,6 +139,8 @@ function RegisterPage() {
         <RegisterStudentPage
           onBack={() => setAccountType("")}
           onRegister={handleStudentRegister}
+          onRegisterSuccess={() => setRegistered(true)}
+
         />
       )}
 

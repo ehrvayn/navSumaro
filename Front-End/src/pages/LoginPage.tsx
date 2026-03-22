@@ -21,8 +21,6 @@ function LoginPage() {
 
       {!isRegister && (
         <div className="hidden lg:flex flex-col justify-between p-12 bg-base-elevated border-l border-border relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/5 rounded-full translate-x-1/2 -translate-y-1/2 blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand/5 rounded-full -translate-x-1/2 translate-y-1/2 blur-3xl pointer-events-none" />
 
           <img src={Logo} className="w-[160px] relative z-10" />
 
@@ -63,7 +61,7 @@ function LoginPage() {
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="bg-base/50 border border-border items-center rounded-md p-3.5 flex gap-1.5"
+                  className="bg-base/50 border border-orange-500/50 items-center rounded-md p-3.5 flex gap-1.5"
                 >
                   <span className="text-[35px]">{item.emoji}</span>
                   <div className="flex flex-col">

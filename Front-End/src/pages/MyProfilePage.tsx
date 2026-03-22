@@ -11,7 +11,7 @@ import {
   KeyRound,
   School,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCurrentUser } from "../context/CurrentUserContex";
 import { usePosts } from "../context/PostContext";
 import { Post } from "../types";
@@ -19,6 +19,7 @@ import Feed from "../components/feed/Feed";
 import { jwtDecode } from "jwt-decode";
 import { Avatar } from "../components/ui";
 import { FaCheckCircle } from "react-icons/fa";
+import { ChevronDown } from "lucide-react";
 
 interface JWTPayload {
   id: string;
@@ -33,6 +34,7 @@ function MyProfilePage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showProfileInfo, setShowProfileInfo] = useState(true);
   const [accountDraft, setAccountDraft] = useState({
     email: "",
     password: "",
@@ -47,6 +49,19 @@ function MyProfilePage() {
     organizationType: "",
     description: "",
   });
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setShowProfileInfo(true);
+      } else {
+        setShowProfileInfo(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   if (!currentUser) return null;
 
@@ -201,7 +216,7 @@ function MyProfilePage() {
 
   return (
     <div className="h-[calc(100vh-60px)] overflow-y-auto bg-base">
-      <div className="max-w-[70%] mx-auto px-4 py-6">
+      <div className="lg:max-w-[70%] max-w-[98%] mx-auto py-6">
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           <div className="w-full lg:w-[320px] lg:sticky lg:top-6 flex flex-col gap-4 shrink-0">
             <div className="bg-base-elevated border border-border rounded-md overflow-hidden">
@@ -400,72 +415,90 @@ function MyProfilePage() {
             </div>
 
             <div className="bg-base-elevated border border-border rounded-md overflow-hidden">
-              <div className="px-4 py-3 border-b border-border">
+              <button
+                onClick={() => setShowProfileInfo(!showProfileInfo)}
+                className="w-full px-4 py-3 border-b border-border flex items-center justify-between hover:bg-base-hover transition-colors"
+              >
                 <h2 className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
                   {isOrganization ? "Organization Info" : "Profile Info"}
                 </h2>
-              </div>
-              <div className="divide-y divide-border">
-                {fields.map(({ key, label, icon }) => (
-                  <div key={key} className="px-4 py-3 flex items-center gap-3">
-                    <div className="text-text-muted shrink-0">{icon}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[9px] text-text-muted uppercase tracking-wider font-semibold mb-0.5">
-                        {label}
-                      </p>
-                      {editing === key ? (
-                        <input
-                          autoFocus
-                          value={draft[key]}
-                          onChange={(e) =>
-                            setDraft((p) => ({ ...p, [key]: e.target.value }))
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") confirmEdit(key);
-                            if (e.key === "Escape") cancelEdit();
-                          }}
-                          className="w-full bg-base border border-brand rounded px-2 py-1 text-xs text-text-primary outline-none"
-                        />
-                      ) : (
-                        <p className="text-[12px] text-text-primary truncate">
-                          {isOrganization
-                            ? (currentUser as any)[
-                                key as keyof typeof currentUser
-                              ]
-                            : (currentUser[
-                                key as keyof typeof currentUser
-                              ] as string)}
+                <div className="h-[1px] flex-1 lg:hidden block bg-gray-500/50 mx-3 rounded-full "/>
+                <ChevronDown
+                  size={20}
+                  className={`lg:hidden transition-transform ${
+                    showProfileInfo ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              {showProfileInfo && (
+                <div className="divide-y divide-border">
+                  {fields.map(({ key, label, icon }) => (
+                    <div
+                      key={key}
+                      className="px-4 py-3 flex items-center gap-3"
+                    >
+                      <div className="text-text-muted shrink-0">{icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[9px] text-text-muted uppercase tracking-wider font-semibold mb-0.5">
+                          {label}
                         </p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      {editing === key ? (
-                        <>
+                        {editing === key ? (
+                          <input
+                            autoFocus
+                            value={draft[key]}
+                            onChange={(e) =>
+                              setDraft((p) => ({
+                                ...p,
+                                [key]: e.target.value,
+                              }))
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") confirmEdit(key);
+                              if (e.key === "Escape") cancelEdit();
+                            }}
+                            className="w-full bg-base border border-brand rounded px-2 py-1 text-xs text-text-primary outline-none"
+                          />
+                        ) : (
+                          <p className="text-[12px] text-text-primary truncate">
+                            {isOrganization
+                              ? (currentUser as any)[
+                                  key as keyof typeof currentUser
+                                ]
+                              : (currentUser[
+                                  key as keyof typeof currentUser
+                                ] as string)}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {editing === key ? (
+                          <>
+                            <button
+                              onClick={() => confirmEdit(key)}
+                              className="p-1 rounded text-green-400 hover:bg-green-500/10 transition-colors"
+                            >
+                              <Check size={13} />
+                            </button>
+                            <button
+                              onClick={cancelEdit}
+                              className="p-1 rounded text-red-400 hover:bg-red-500/10 transition-colors"
+                            >
+                              <X size={13} />
+                            </button>
+                          </>
+                        ) : (
                           <button
-                            onClick={() => confirmEdit(key)}
-                            className="p-1 rounded text-green-400 hover:bg-green-500/10 transition-colors"
+                            onClick={() => startEdit(key)}
+                            className="p-1 rounded text-text-muted hover:text-brand hover:bg-brand/10 transition-colors"
                           >
-                            <Check size={13} />
+                            <Pencil size={13} />
                           </button>
-                          <button
-                            onClick={cancelEdit}
-                            className="p-1 rounded text-red-400 hover:bg-red-500/10 transition-colors"
-                          >
-                            <X size={13} />
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => startEdit(key)}
-                          className="p-1 rounded text-text-muted hover:text-brand hover:bg-brand/10 transition-colors"
-                        >
-                          <Pencil size={13} />
-                        </button>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {!isOrganization && (

@@ -28,7 +28,6 @@ function RegisterOrg({ onBack, onRegisterSuccess }: RegisterOrgProps) {
   const [university, setUniversity] = useState("");
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { setIsRegister } = useLogin();
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -58,9 +57,7 @@ function RegisterOrg({ onBack, onRegisterSuccess }: RegisterOrgProps) {
   };
 
   const handleRegister = async () => {
-    console.log("handleRegister called");
     const validationErrors = validate();
-    console.log("validationErrors:", validationErrors);
     
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -80,7 +77,6 @@ function RegisterOrg({ onBack, onRegisterSuccess }: RegisterOrgProps) {
       description,
     };
 
-    console.log("Sending data:", data);
 
     try {
       const response = await fetch("http://localhost:5000/org/register", {

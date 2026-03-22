@@ -13,8 +13,8 @@ interface LeftSidebarProps {
 }
 
 const filters = [
-  { id: "newest", label: "Newest & Recent", icon: "🟢", sub: "Latest updates" },
-  { id: "popular", label: "Popular Today", icon: "🔥", sub: "Featured by curators" },
+  { id: "newest", label: "Newest & Recent", icon: "✨", sub: "" },
+  { id: "popular", label: "Popular Today", icon: "🔥", sub: "" },
 ];
 
 const quickTags = ["#javascript", "#GroupStudy", "#design", "#blogging", "#tutorial"];
