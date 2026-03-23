@@ -5,6 +5,8 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
     "dev": "nodemon --exec \"node --loader ts-node/esm\" server.ts"
   },
   "keywords": [
