@@ -11,7 +11,9 @@ export const deleteThread = async (threadId: any, currentUserId: any) => {
     }
 
     const thread = threadResult.rows[0];
-    const isParticipantOne = thread.participantOneId === currentUserId;
+    const isParticipantOne =
+      thread.participantOneId === currentUserId ||
+      thread.orgParticipantOneId === currentUserId;
 
     const { query: sql, values } = messageQuery.deleteThread(threadId, currentUserId, isParticipantOne);
     const result = await query(sql, values);

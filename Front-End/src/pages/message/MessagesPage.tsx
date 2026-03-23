@@ -175,7 +175,7 @@ const MessagesPage: React.FC = () => {
                     <div className="relative shrink-0">
                       <Avatar initials={(t.firstname[0]) + (t.lastname[0])} size="sm" />
                       {t.isOnline && (
-                        <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border-2 border-base-surface" />
+                        <span className="absolute bottom-1.5 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-base-surface" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">

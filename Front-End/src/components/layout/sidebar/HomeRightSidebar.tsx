@@ -1,10 +1,10 @@
 import React from "react";
-import { mockEvents } from "../../../data/mockEvents";
 import { mockOrganizations } from "../../../data/mockOrganization";
 import { trendingTopics } from "../../../data/mockData";
 import { Divider, SectionHeader } from "../../ui";
 import { X } from "lucide-react";
 import { usePage } from "../../../context/PageContex";
+import { useEvent } from "../../../context/EventContex";
 
 interface RightSidebarProps {
   isOpen?: boolean;
@@ -13,6 +13,7 @@ interface RightSidebarProps {
 
 const RightSidebar: React.FC<RightSidebarProps> = ({ isOpen, onClose }) => {
   const { setActivePage } = usePage();
+  const { events } = useEvent();
 
   const content = (
     <div className="pt-5 mt-[60px] md:mt-0">
@@ -23,7 +24,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ isOpen, onClose }) => {
           onAction={() => setActivePage("calendar")}
         />
         <div className="flex flex-col gap-2">
-          {mockEvents.slice(0, 5).map((event) => {
+          {events.slice(0, 5).map((event) => {
             const org = mockOrganizations.find(
               (o) => o.id === event.organizerId,
             );
@@ -48,7 +49,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ isOpen, onClose }) => {
                     {event.title}
                   </div>
                   <div className="text-[10px] text-text-muted mt-0.5 truncate">
-                    🔵 {org?.name ?? "Unknown Organization"}
+                    {event.organizer.name}
                   </div>
                 </div>
               </div>

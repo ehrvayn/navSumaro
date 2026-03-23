@@ -5,6 +5,7 @@ import { Page } from "../../../types";
 import { useListings } from "../../../context/ListingContext";
 import { usePosts } from "../../../context/PostContext";
 import { useMessages } from "../../../context/MessageContext";
+import { useCurrentUser } from "../../../context/CurrentUserContex";
 import {
   Search,
   House,
@@ -43,6 +44,13 @@ const Topbar: React.FC<TopbarProps> = ({
   const { setShowCreateListing } = useListings();
   const { setShowCreatePost, setSelectedPostId } = usePosts();
   const { totalUnread } = useMessages();
+  const { currentUser } = useCurrentUser();
+  const filteredNavItems = navItems.filter((item) => {
+    if (currentUser?.accountType === "organization") {
+      return item.page !== "marketplace" && item.page !== "groups";
+    }
+    return true;
+  });
 
   return (
     <header className="sticky top-0 z-[999]">
@@ -62,7 +70,7 @@ const Topbar: React.FC<TopbarProps> = ({
         </div>
 
         <nav className="absolute left-1/2 -translate-x-1/2 md:flex hidden gap-5 lg:gap-10 xl:gap-20 items-center">
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = activePage === item.page;
             return (
@@ -179,7 +187,7 @@ const Topbar: React.FC<TopbarProps> = ({
 
       <div className="bg-base-surface border-b md:hidden border-border flex px-5 h-[60px]">
         <div className="flex w-full justify-between items-center gap-1.5">
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = activePage === item.page;
             return (

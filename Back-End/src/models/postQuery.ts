@@ -14,7 +14,12 @@ const postQuery = {
       postData.orgAuthorId ?? null,
     ],
   }),
-  retrieveAll: (userId: string, groupId?: string | null) => ({
+  retrieveAll: (
+    userId: string,
+    groupId?: string | null,
+    limit = 20,
+    offset = 0,
+  ) => ({
     query: `
     SELECT 
       p.*,
@@ -49,8 +54,11 @@ const postQuery = {
     LEFT JOIN organizations o ON p."orgAuthorId" = o.id
     LEFT JOIN post_votes pv ON pv.post_id = p.id AND pv.user_id = $1
     WHERE ${groupId ? `p."groupId" = $2` : `p."groupId" IS NULL`}
-    ORDER BY p."createdAt" DESC;`,
-    values: groupId ? [userId, groupId] : [userId],
+    ORDER BY p."createdAt" DESC
+    LIMIT ${groupId ? "$3" : "$2"} OFFSET ${groupId ? "$4" : "$3"}`,
+    values: groupId
+      ? [userId, groupId, limit, offset]
+      : [userId, limit, offset],
   }),
   delete: (id: any, userId: any) => ({
     query: `DELETE FROM posts WHERE id = $1 AND ("studentAuthorId" = $2 OR "orgAuthorId" = $2)`,

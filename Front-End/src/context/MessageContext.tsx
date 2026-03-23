@@ -17,8 +17,7 @@ interface MessageContextType {
   Messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   groupConversations: GroupConversation[];
-  setGroupConversations: React.Dispatch<React.SetStateAction<GroupConversation[]>
-  >;
+  setGroupConversations: React.Dispatch<React.SetStateAction<GroupConversation[]>>;
   selectedMessage: ChatSession | null;
   setSelectedMessageId: React.Dispatch<React.SetStateAction<string | null>>;
   showCreateMessage: boolean;
@@ -38,15 +37,10 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [Messages, setMessages] = useState<Message[]>([]);
-  const [groupConversations, setGroupConversations] = useState
-    <GroupConversation[]
-  >(mockGroupConversations);
+  const [groupConversations, setGroupConversations] = useState<GroupConversation[]>(mockGroupConversations);
   const [showCreateMessage, setShowCreateMessage] = useState(false);
-  const [selectedConversation, setSelectedConversation] =
-    useState<ChatSession | null>(null);
-  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
-    null,
-  );
+  const [selectedConversation, setSelectedConversation] = useState<ChatSession | null>(null);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [threads, setThreads] = useState<any[]>([]);
   const socket = useMemo(() => io("http://localhost:5000"), []);
   const { currentUser } = useCurrentUser();
@@ -58,23 +52,6 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({
       socket.emit("user_connected", currentUser.id);
     }
   }, [currentUser?.id, socket]);
-
-  useEffect(() => {
-    const handleNewThread = (threadData: any) => {
-      setThreads((prev) => {
-        if (prev.some((t) => t.id === threadData.id)) {
-          return prev;
-        }
-        return [threadData, ...prev];
-      });
-    };
-
-    socket.on("new_thread", handleNewThread);
-
-    return () => {
-      socket.off("new_thread", handleNewThread);
-    };
-  }, [socket]);
 
   useEffect(() => {
     currentUserRef.current = currentUser;
@@ -108,7 +85,43 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [currentUser?.id]);
 
-  const totalUnread = threads.reduce((sum, t) => sum + (t.unread ?? 0), 0);
+  useEffect(() => {
+    const handleStatusChange = ({ userId, isOnline }: { userId: string; isOnline: boolean }) => {
+      setThreads((prev) =>
+        prev.map((t) =>
+          t.participantId === userId ? { ...t, isOnline } : t
+        )
+      );
+      setSelectedConversation((prev: any) => {
+        if (!prev) return prev;
+        const participantId = prev.participantId ?? prev.participant?.id;
+        if (participantId === userId) {
+          return {
+            ...prev,
+            isOnline,
+            participant: prev.participant
+              ? { ...prev.participant, isOnline }
+              : prev.participant,
+          };
+        }
+        return prev;
+      });
+    };
+
+    socket.on("user_status_change", handleStatusChange);
+    return () => {socket.off("user_status_change", handleStatusChange)};
+  }, [socket]);
+
+  useEffect(() => {
+    const handleNewThread = (threadData: any) => {
+      setThreads((prev) => {
+        if (prev.some((t) => t.id === threadData.id)) return prev;
+        return [threadData, ...prev];
+      });
+    };
+    socket.on("new_thread", handleNewThread);
+    return () => {socket.off("new_thread", handleNewThread)};
+  }, [socket]);
 
   useEffect(() => {
     const handleReceiveMessage = (newMessage: any) => {
@@ -118,27 +131,20 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setThreads((prev) => {
         const threadExists = prev.some((t) => t.id === newMessage.threadId);
-
         if (!threadExists) {
           fetchThreads();
-          setTimeout(() => {
-            fetchThreads();
-          }, 500);
+          setTimeout(() => fetchThreads(), 500);
           return prev;
         }
-
-        const updated = prev.map((t) =>
+        return prev.map((t) =>
           t.id === newMessage.threadId
             ? {
                 ...t,
                 lastMessage: newMessage.text,
-                unread:
-                  isMine || isCurrentlyOpen ? t.unread : (t.unread ?? 0) + 1,
+                unread: isMine || isCurrentlyOpen ? t.unread : (t.unread ?? 0) + 1,
               }
             : t,
         );
-
-        return updated;
       });
     };
 
@@ -154,7 +160,6 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({
 
     socket.on("receive_message", handleReceiveMessage);
     socket.on("thread_updated", handleThreadUpdated);
-
     return () => {
       socket.off("receive_message", handleReceiveMessage);
       socket.off("thread_updated", handleThreadUpdated);
@@ -170,6 +175,8 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({
       ),
     );
   };
+
+  const totalUnread = threads.reduce((sum, t) => sum + (t.unread ?? 0), 0);
 
   const selectedMessage =
     Messages.find((p) => p.id === selectedMessageId) ||
@@ -203,7 +210,6 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({
 
 export const useMessages = () => {
   const context = useContext(MessageContext);
-  if (!context)
-    throw new Error("useMessages must be used inside MessageProvider");
+  if (!context) throw new Error("useMessages must be used inside MessageProvider");
   return context;
 };

@@ -59,7 +59,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
       <Divider className="mb-5" />
       <div className="text-[10px] font-bold text-text-muted tracking-[1.2px] uppercase mb-2 pl-0.5">
-        Top-10 tags
+        Popular tags
       </div>
       {popularTags.map((tag) => (
         <div

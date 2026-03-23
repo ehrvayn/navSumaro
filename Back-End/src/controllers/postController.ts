@@ -24,8 +24,11 @@ export const retrieveAllPost = async (req: Request, res: Response) => {
   try {
     const currentUser = (req as any).user;
     const groupId = req.query.groupId as string | undefined;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+    const offset = (page - 1) * limit;
 
-    const result = await getAllPost(currentUser, groupId ?? null);
+    const result = await getAllPost(currentUser, groupId ?? null, limit, offset);
 
     if (result.success) {
       res.status(200).json(result.posts);

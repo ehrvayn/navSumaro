@@ -55,6 +55,9 @@ interface PostContextType {
   getUserData: (userId: string) => Promise<void>;
   draft: Draft;
   setDraft: React.Dispatch<React.SetStateAction<Draft>>;
+  loadMorePosts: () => void;
+  hasMore: boolean;
+  loadingMore: boolean;
   handleCreatePost: (
     data: Omit<
       Post,
@@ -113,6 +116,9 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isEditing, setIsEditing] = useState(false);
   const { currentUser } = useCurrentUser();
   const votingRef = useRef<Set<string>>(new Set());
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [draft, setDraft] = useState<Draft>({
     id: "",
     firstname: "",
@@ -133,17 +139,24 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     getAllPost();
   }, [currentUser]);
 
-  const getAllPost = async () => {
+  const getAllPost = async (pageNum = 1) => {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch("http://localhost:5000/post/retrieveAll", {
-        method: "GET",
-        headers: {
-          authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      if (pageNum === 1) {
+      } else {
+        setLoadingMore(true);
+      }
+      const response = await fetch(
+        `http://localhost:5000/post/retrieveAll?page=${pageNum}&limit=20`,
+        {
+          method: "GET",
+          headers: {
+            authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
       if (response.ok) {
         const data = await response.json();
         const normalized = data.map((p: any) => ({
@@ -151,7 +164,11 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
           upVote: p.upVote === true,
           downVote: p.downVote === true,
         }));
-        setPosts(normalized);
+
+        if (normalized.length < 20) setHasMore(false);
+        setPosts((prev) =>
+          pageNum === 1 ? normalized : [...prev, ...normalized],
+        );
 
         const tagCount: Record<string, number> = {};
         data.forEach((post: any) => {
@@ -159,18 +176,29 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
             tagCount[tag] = (tagCount[tag] || 0) + 1;
           });
         });
-
         const topTags = Object.entries(tagCount)
           .sort((a, b) => b[1] - a[1])
           .slice(0, 10)
           .map(([tag]) => tag);
-
         setPopularTags(topTags);
       }
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoadingMore(false);
     }
   };
+
+  const loadMorePosts = () => {
+    if (!hasMore || loadingMore) return;
+    const nextPage = page + 1;
+    setPage(nextPage);
+    getAllPost(nextPage);
+  };
+
+  useEffect(() => {
+    getAllPost(1);
+  }, [currentUser]);
 
   const normalizeComment = (c: any): Comment => {
     const isOrg = c.author.accountType === "organization";
@@ -629,6 +657,9 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
         showDeletePost,
         setShowDeletePost,
         handleVote,
+        loadMorePosts,
+        hasMore,
+        loadingMore,
         getFilteredPosts,
         getGroupPosts,
         getGroupPostsById,

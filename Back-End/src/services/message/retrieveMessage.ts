@@ -4,7 +4,7 @@ import messageQuery from "../../models/messageQuery.js";
 export const retrieveAllMessages = async (threadId: any, currentUser: any) => {
   try {
     const threadResult = await query(
-      `SELECT "participantOneId", "deletedAtOne", "deletedAtTwo" FROM threads WHERE id = $1`,
+      `SELECT "participantOneId", "orgParticipantOneId", "deletedAtOne", "deletedAtTwo" FROM threads WHERE id = $1`,
       [threadId]
     );
 
@@ -13,7 +13,9 @@ export const retrieveAllMessages = async (threadId: any, currentUser: any) => {
     }
 
     const thread = threadResult.rows[0];
-    const isParticipantOne = thread.participantOneId === currentUser.id;
+    const isParticipantOne =
+      thread.participantOneId === currentUser.id ||
+      thread.orgParticipantOneId === currentUser.id;
     const myDeletedAt = isParticipantOne ? thread.deletedAtOne : thread.deletedAtTwo;
 
     const { query: sql, values } = messageQuery.retrieveAll(threadId, myDeletedAt);

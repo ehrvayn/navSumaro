@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Group, GroupMember } from "../types";
 import { useCurrentUser } from "./CurrentUserContex";
+import { io } from "socket.io-client";
+
+// shared socket singleton — same URL as MessageContext
+const socket = io("http://localhost:5000");
 
 interface GroupContextType {
   groups: Group[];
@@ -41,10 +45,33 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
     getAllGroup();
   }, [currentUser]);
 
+  useEffect(() => {
+    const handleStatusChange = ({
+      userId,
+      isOnline,
+    }: {
+      userId: string;
+      isOnline: boolean;
+    }) => {
+      setGroups((prev) =>
+        prev.map((g) => ({
+          ...g,
+          members: g.members.map((m) =>
+            m.user.id === userId
+              ? { ...m, user: { ...m.user, isOnline } }
+              : m,
+          ),
+        })),
+      );
+    };
+
+    socket.on("user_status_change", handleStatusChange);
+    return () => {socket.off("user_status_change", handleStatusChange)};
+  }, []);
+
   const getAllGroup = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
-
     try {
       const response = await fetch("http://localhost:5000/group/retrieveAll", {
         method: "GET",
@@ -53,7 +80,6 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
           "Content-Type": "application/json",
         },
       });
-
       if (response.ok) {
         const data = await response.json();
         setGroups(data);
@@ -69,13 +95,11 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
   const setJoined = async (val: boolean, groupId?: string) => {
     const token = localStorage.getItem("token");
     if (!token) return;
-
     const targetId = groupId ?? activeGroupId;
     const url = val
       ? `http://localhost:5000/group/join/${targetId}`
       : `http://localhost:5000/group/leave/${targetId}`;
     const method = val ? "POST" : "DELETE";
-
     try {
       const response = await fetch(url, {
         method,
@@ -84,7 +108,6 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
           "Content-Type": "application/json",
         },
       });
-
       if (response.ok) {
         setGroups((prev) =>
           prev.map((g) => {
@@ -112,10 +135,7 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
             };
           }),
         );
-
-        if (!val) {
-          await getAllGroup();
-        }
+        if (!val) await getAllGroup();
       }
     } catch (error) {
       console.log(error);
@@ -150,7 +170,6 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
   const kickMember = async (groupId: string, memberId: string) => {
     const token = localStorage.getItem("token");
     if (!token) return;
-
     try {
       const response = await fetch(
         `http://localhost:5000/group/kick/${groupId}/${memberId}`,
@@ -162,15 +181,11 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
           },
         },
       );
-
       if (response.ok) {
         setGroups((prev) =>
           prev.map((g) =>
             g.id === groupId
-              ? {
-                  ...g,
-                  members: g.members.filter((m) => m.user.id !== memberId),
-                }
+              ? { ...g, members: g.members.filter((m) => m.user.id !== memberId) }
               : g,
           ),
         );

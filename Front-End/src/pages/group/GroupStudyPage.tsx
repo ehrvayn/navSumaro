@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Post } from "../../types";
-import { Menu, School, SlidersHorizontal, User } from "lucide-react";
+import { Menu, School, SlidersHorizontal, User, Users } from "lucide-react";
 import { useGroup } from "../../context/GroupContex";
 import { usePosts } from "../../context/PostContext";
 import GroupChat from "./GroupChat";
@@ -57,7 +57,6 @@ const GroupStudyPage: React.FC = () => {
           return [...prev, newMessage];
         });
       } else {
-        // Increment unread for other groups
         setGroupUnread((prev) => ({
           ...prev,
           [newMessage.groupId]: (prev[newMessage.groupId] || 0) + 1,
@@ -191,15 +190,15 @@ const GroupStudyPage: React.FC = () => {
 
       <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
         <div className="flex-shrink-0 px-3 sm:px-5 pt-2 sm:pt-3 bg-base">
-          <div className="flex items-center gap-2 lg:hidden mb-2">
+          <div className="flex justify-between items-center gap-2 lg:hidden mb-2">
             <button
               onClick={() => setLeftOpen(true)}
               className="p-2 rounded-md bg-white/5 border border-white/10 text-slate-400"
             >
               <Menu size={15} />
             </button>
-            <span className="text-sm font-bold text-slate-300 flex-1 truncate">
-              {hasJoined ? activeGroup?.name : "Groups"}
+            <span className="text-sm flex gap-1 items-center font-bold text-slate-300  truncate">
+              <Users size={15}/> Groups
             </span>
             <button
               onClick={() => setRightOpen(true)}
@@ -212,31 +211,33 @@ const GroupStudyPage: React.FC = () => {
           {hasJoined ? (
             <div className="relative rounded-lg border border-white/[0.08] bg-gradient-to-br from-blue-500/20 to-orange-500/10 p-3 sm:p-4 mb-2 sm:mb-3 overflow-hidden">
               <div className="flex items-start gap-3 sm:gap-4">
-                <div className="flex items-center justify-center text-[40px] shadow-lg">
+                <div className="flex items-center justify-center text-[30px] md:text-[40px] shadow-lg">
                   {activeGroup?.emoji}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <div className="flex gap-2 items-center">
-                      <h1 className="text-base sm:text-lg font-extrabold text-slate-100 truncate">
+                      <h1 className="text-[15px] md:text-[17px] font-extrabold text-slate-100 truncate">
                         {activeGroup?.name}
                       </h1>
                       {activeGroup?.isPublic ? (
                         <BsGlobeAmericasFill />
                       ) : (
+                        <div className="text-[13px] md:text-[15px]">
                         <FaLock />
+                        </div>
                       )}
                     </div>
                     <div className="flex gap-1.5 flex-shrink-0">
                       <button
                         onClick={handleLeave}
-                        className="px-3 py-1.5 rounded-md text-[11px] font-bold bg-red-700 text-white hover:bg-red-800 transition-colors"
+                        className="px-3 py-1.5 rounded-md text-[10px] md:text-[13px] font-bold bg-red-700 text-white hover:bg-red-800 transition-colors"
                       >
                         LEAVE
                       </button>
                     </div>
                   </div>
-                  <div className="hidden sm:flex items-center gap-4 text-[12px] text-slate-500">
+                  <div className="flex items-center gap-4 text-[12px] text-slate-500">
                     <span className="flex items-center gap-1">
                       <User size={12} /> {activeGroup?.members.length}
                     </span>
@@ -279,7 +280,7 @@ const GroupStudyPage: React.FC = () => {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`px-4 py-2 text-sm border-b-2 transition-all relative ${activeTab === tab ? "border-orange-500 text-orange-400 font-bold" : "border-transparent text-slate-500"}`}
+                    className={`px-4 py-2 text-[11px] md:text-[14px] border-b-2 transition-all relative ${activeTab === tab ? "border-orange-500 text-orange-400 font-bold" : "border-transparent text-slate-500"}`}
                   >
                     {tab}
                     {totalUnread > 0 && (

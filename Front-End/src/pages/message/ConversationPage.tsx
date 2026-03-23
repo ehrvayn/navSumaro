@@ -173,7 +173,11 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
       threadId: threadIdRef.current,
       text: message,
       senderId: currentUser.id,
+      senderAccountType: currentUser.accountType,
       recipientId: conversation.participantId || conversation.participant?.id,
+      recipientIsOrg:
+        (conversation.participant?.accountType ?? conversation.accountType) ===
+        "organization",
     });
     setMessage("");
   };

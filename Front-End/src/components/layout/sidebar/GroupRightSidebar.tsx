@@ -3,9 +3,9 @@ import { X } from "lucide-react";
 import { Avatar } from "../../ui";
 import { SectionHeader } from "../../ui";
 import { usePage } from "../../../context/PageContex";
-import { mockEvents } from "../../../data/mockEvents";
 import { mockOrganizations } from "../../../data/mockOrganization";
 import { Group, GroupMember } from "../../../types/index";
+import { useEvent } from "../../../context/EventContex";
 
 interface GroupRightSidebarProps {
   onlineMembers: GroupMember[];
@@ -22,7 +22,8 @@ function GroupRightSidebar({
   isOpen,
   onClose,
 }: GroupRightSidebarProps) {
-  const { setActivePage} = usePage();
+  const { setActivePage } = usePage();
+  const { events } = useEvent();
 
   const content = (
     <aside className="w-60 flex-shrink-0 h-full px-4 py-5 border-l mt-[60px] md:mt-0 border-white/5">
@@ -33,7 +34,7 @@ function GroupRightSidebar({
           onAction={() => setActivePage("calendar")}
         />
         <div className="flex flex-col gap-3 mt-4">
-          {mockEvents.slice(0, 5).map((e) => {
+          {events.slice(0, 5).map((e) => {
             const org = mockOrganizations.find((o) => o.id === e.organizerId);
             return (
               <div
@@ -56,7 +57,7 @@ function GroupRightSidebar({
                     {e.title}
                   </div>
                   <div className="text-[11px] text-slate-500 truncate">
-                    {org?.name ?? "Unknown Organization"}
+                    {e.organizer.name}
                   </div>
                 </div>
               </div>

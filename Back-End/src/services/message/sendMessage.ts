@@ -3,8 +3,11 @@ import { query } from "../../database/Connection.js";
 
 export const sendMessage = async (messageData: any, currentUser: any) => {
   try {
+    const currentUserIsOrg = currentUser.accountType === "organization";
+    const recipientIsOrg = messageData.recipientIsOrg ?? false;
+
     const { query: threadSql, values: threadValues } =
-      messageQuery.findOrCreateThread(currentUser.id, messageData.recipientId);
+      messageQuery.findOrCreateThread(currentUser.id, messageData.recipientId, currentUserIsOrg, recipientIsOrg);
     const insertResult = await query(threadSql, threadValues);
 
     let threadId: string;

@@ -44,9 +44,17 @@ app.use("*", (req: Request, res: Response) => {
 });
 
 io.on("connection", (socket) => {
-  socket.on("user_connected", (userId: string) => {
+  socket.on("user_connected", async (userId: string) => {
     userSockets.set(userId, socket.id);
     console.log(`User ${userId} connected with socket ${socket.id}`);
+
+    try {
+      await query(`UPDATE users SET "isOnline" = true WHERE id = $1`, [userId]);
+    } catch (err) {
+      console.error("Failed to set user online:", err);
+    }
+
+    io.emit("user_status_change", { userId, isOnline: true });
   });
 
   socket.on("join_conversation", (threadId) => {
@@ -56,10 +64,12 @@ io.on("connection", (socket) => {
   socket.on("send_message", async (data) => {
     try {
       const existsQuery = `
-        SELECT id FROM threads
-        WHERE "participantOneId" = LEAST($1::uuid, $2::uuid)
-        AND "participantTwoId" = GREATEST($1::uuid, $2::uuid)
-      `;
+      SELECT id FROM threads
+      WHERE ("participantOneId" = LEAST($1::uuid, $2::uuid) AND "participantTwoId" = GREATEST($1::uuid, $2::uuid))
+      OR ("orgParticipantOneId" = $1::uuid AND "participantTwoId" = $2::uuid)
+      OR ("participantOneId" = $1::uuid AND "orgParticipantTwoId" = $2::uuid)
+      OR ("orgParticipantOneId" = $1::uuid AND "orgParticipantTwoId" = $2::uuid)
+    `;
       const existsResult = await query(existsQuery, [
         data.senderId,
         data.recipientId,
@@ -67,8 +77,15 @@ io.on("connection", (socket) => {
       const threadExists = existsResult.rows.length > 0;
 
       const result = await sendMessage(
-        { text: data.text, recipientId: data.recipientId },
-        { id: data.senderId },
+        {
+          text: data.text,
+          recipientId: data.recipientId,
+          recipientIsOrg: data.recipientIsOrg ?? false,
+        },
+        {
+          id: data.senderId,
+          accountType: data.senderAccountType ?? "student",
+        },
       );
 
       if (result.success) {
@@ -77,10 +94,12 @@ io.on("connection", (socket) => {
 
         if (!threadExists) {
           try {
-            const senderQuery = `SELECT id, firstname, lastname, avatar, program, "isOnline" FROM users WHERE id = $1`;
+            const senderQuery =
+              data.senderAccountType === "organization"
+                ? `SELECT id, name AS firstname, '' AS lastname, avatar, "organizationType" AS program, false AS "isOnline" FROM organizations WHERE id = $1`
+                : `SELECT id, firstname, lastname, avatar, program, "isOnline" FROM users WHERE id = $1`;
             const senderResult = await query(senderQuery, [data.senderId]);
             const sender = senderResult.rows[0];
-
             const recipientSocketId = userSockets.get(data.recipientId);
 
             if (recipientSocketId) {
@@ -92,6 +111,7 @@ io.on("connection", (socket) => {
                 avatar: sender.avatar,
                 program: sender.program,
                 isOnline: sender.isOnline,
+                accountType: data.senderAccountType ?? "student",
                 lastMessage: data.text,
                 createdAt: new Date(),
                 unread: 1,
@@ -103,14 +123,11 @@ io.on("connection", (socket) => {
         }
 
         socket.join(realThreadId);
-
         const recipientSocketId = userSockets.get(data.recipientId);
         if (recipientSocketId) {
           io.to(recipientSocketId).emit("receive_message", messagePayload);
         }
-
         socket.emit("receive_message", messagePayload);
-
         io.emit("thread_updated", {
           threadId: realThreadId,
           lastMessage: data.text,
@@ -123,17 +140,35 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
+    let disconnectedUserId: string | null = null;
+
     for (const [userId, socketId] of userSockets.entries()) {
       if (socketId === socket.id) {
+        disconnectedUserId = userId;
         userSockets.delete(userId);
         break;
       }
     }
+
     console.log("User disconnected:", socket.id);
+
+    if (disconnectedUserId) {
+      try {
+        await query(`UPDATE users SET "isOnline" = false WHERE id = $1`, [
+          disconnectedUserId,
+        ]);
+      } catch (err) {
+        console.error("Failed to set user offline:", err);
+      }
+
+      io.emit("user_status_change", {
+        userId: disconnectedUserId,
+        isOnline: false,
+      });
+    }
   });
 
-  // group //
   socket.on("send_group_message", async (data) => {
     try {
       const { groupId, text, senderId } = data;
@@ -143,11 +178,11 @@ io.on("connection", (socket) => {
         [senderId],
       );
       const sender = senderResult.rows[0];
+
       const membersResult = await query(
         `SELECT user_id FROM group_members WHERE group_id = $1`,
         [groupId],
       );
-
       const members = membersResult.rows.map((row) => row.user_id);
 
       socket.join(groupId);
@@ -172,7 +207,9 @@ io.on("connection", (socket) => {
       });
 
       socket.emit("receive_group_message", messagePayload);
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error sending group message:", error);
+    }
   });
 });
 

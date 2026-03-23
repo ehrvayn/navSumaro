@@ -103,6 +103,23 @@ const usersQuery = {
     FROM users`,
   }),
 
+  // retrieveUser: () => ({
+  //  query:` SELECET id, 
+  //     email, 
+  //     firstname, 
+  //     lastname, 
+  //     "accountType", 
+  //     university, 
+  //     program, 
+  //     "isVerified",
+  //     reputation,
+  //     "yearLevel", 
+  //     avatar,
+  //     created_at
+  //   FROM users`,
+  //  values:[]
+  // })
+
   // UPDATE USER //
   updateEmail: (id: string, email: string) => ({
     query: "UPDATE users SET email = $1 WHERE id = $2",

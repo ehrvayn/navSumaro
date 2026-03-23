@@ -16,17 +16,17 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <PageProvider>
       <CurrentUserProvider>
         <LoginProvider>
-          <GroupProvider>
-            <PostProvider>
-              <ListingProvider>
-                <MessageProvider>
+          <MessageProvider>
+            <GroupProvider>
+              <PostProvider>
+                <ListingProvider>
                   <EventProvider>
                     <App />
                   </EventProvider>
-                </MessageProvider>
-              </ListingProvider>
-            </PostProvider>
-          </GroupProvider>
+                </ListingProvider>
+              </PostProvider>
+            </GroupProvider>
+          </MessageProvider>
         </LoginProvider>
       </CurrentUserProvider>
     </PageProvider>

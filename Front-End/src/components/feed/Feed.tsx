@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Post } from "../../types";
 import PostCard from "./PostCard";
 import CreatePostBar from "./CreatePostBar";
@@ -24,8 +24,22 @@ const Feed: React.FC<FeedProps> = ({
   searchQuery,
   showCreatePostCard,
 }) => {
-  const { postUserProfileId } = usePosts();
+  const { postUserProfileId, loadMorePosts, hasMore, loadingMore } = usePosts();
   const { currentUser } = useCurrentUser();
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          loadMorePosts();
+        }
+      },
+      { threshold: 1.0 },
+    );
+    if (sentinelRef.current) observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore]);
 
   return (
     <main className="flex flex-col w-full max-w-[800px] py-5 pb-16 mx-auto animate-fadeIn">
@@ -56,6 +70,12 @@ const Feed: React.FC<FeedProps> = ({
               />
             </div>
           ))}
+          <div ref={sentinelRef} className="h-4" />
+          {loadingMore && (
+            <div className="text-center text-text-muted text-xs py-4">
+              Loading...
+            </div>
+          )}
         </div>
       )}
     </main>
