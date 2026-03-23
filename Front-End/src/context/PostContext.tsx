@@ -79,6 +79,8 @@ interface PostContextType {
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   votePostId: string | null;
   setVotePostId: React.Dispatch<React.SetStateAction<string | null>>;
+  popularTags: string[];
+  setPopularTags: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 const PostContext = createContext<PostContextType | null>(null);
@@ -96,6 +98,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
   );
   const [editPostId, setEditPostId] = useState<string | null>(null);
   const [votePostId, setVotePostId] = useState<string | null>(null);
+  const [popularTags, setPopularTags] = useState<string[]>([]);
   const [postComments, setPostComments] = useState<Record<string, Comment[]>>(
     {},
   );
@@ -149,6 +152,20 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
           downVote: p.downVote === true,
         }));
         setPosts(normalized);
+
+        const tagCount: Record<string, number> = {};
+        data.forEach((post: any) => {
+          (post.tags || []).forEach((tag: string) => {
+            tagCount[tag] = (tagCount[tag] || 0) + 1;
+          });
+        });
+
+        const topTags = Object.entries(tagCount)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10)
+          .map(([tag]) => tag);
+
+        setPopularTags(topTags);
       }
     } catch (error) {
       console.log(error);
@@ -587,6 +604,8 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
   return (
     <PostContext.Provider
       value={{
+        popularTags,
+        setPopularTags,
         getUserData,
         postUserProfileId,
         setPostUserProfileId,

@@ -24,7 +24,7 @@ function GroupLeftSidebar({
     .filter((g: Group) => g.name.toLowerCase().includes(search.toLowerCase()));
 
   const content = (
-    <aside className="w-52 flex-shrink-0 h-full flex flex-col gap-2 px-3 border-r border-white/5">
+    <aside className="w-52 flex-shrink-0 h-full flex mt-[60px] md:mt-0 flex-col gap-2 px-3 border-r border-white/5">
       <button
         onClick={() => setShowCreateGroup(true)}
         className="w-full mt-3 py-2.5 rounded-md border-2 border-dashed border-white/100 text-slate-500 text-[13px] flex items-center justify-center gap-1.5 hover:bg-white/5 transition-all"

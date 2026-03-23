@@ -1,7 +1,7 @@
 import React from "react";
-import { popularTags } from "../../../data/mockData";
 import { Divider } from "../../ui";
 import { X } from "lucide-react";
+import { usePosts } from "../../../context/PostContext";
 
 interface LeftSidebarProps {
   activeTag: string | null;
@@ -17,22 +17,21 @@ const filters = [
   { id: "popular", label: "Popular Today", icon: "🔥", sub: "" },
 ];
 
-const quickTags = ["#javascript", "#GroupStudy", "#design", "#blogging", "#tutorial"];
-
 const LeftSidebar: React.FC<LeftSidebarProps> = ({
-  activeTag,
   onTagClick,
+  activeTag,
   activeFilter,
   onFilterChange,
   isOpen,
   onClose,
 }) => {
+  const { popularTags } = usePosts();
   const content = (
-    <div className="pt-5">
+    <div className="pt-5 mt-[60px] md:mt-0">
       <div className="mb-5">
-        {filters.map((f) => (
+        {filters.map((f, index) => (
           <button
-            key={f.id}
+            key={f.id || index}
             onClick={() => {
               onFilterChange(f.id);
               onClose?.();
@@ -59,53 +58,64 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
       </div>
 
       <Divider className="mb-5" />
-
-      <div className="mb-5">
-        <div className="text-[10px] font-bold text-text-muted tracking-[1.2px] uppercase mb-2.5 pl-0.5">
-          Popular Tags
-        </div>
-        {popularTags.map((t) => (
+      {popularTags.map((tag) => (
+        <div
+          key={tag}
+          className={`${activeTag === tag && "border-b border-orange-500/80"}`}
+        >
           <button
-            key={t.tag}
             onClick={() => {
-              onTagClick(activeTag === t.tag ? "" : t.tag);
+              onTagClick(tag);
               onClose?.();
             }}
-            className={`sidebar-item mb-0.5 ${activeTag === t.tag ? "bg-base-hover" : ""}`}
+            className={`sidebar-item mb-0.5`}
           >
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${t.color.split(" ")[0]}`}>
-              <span className={`text-[13px] font-bold ${t.color.split(" ")[1]}`}>#</span>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-orange-500/20">
+              <span className="text-[13px] font-bold text-orange-400">#</span>
             </div>
             <div className="flex-1 min-w-0">
-              <div className={`text-xs font-semibold truncate ${activeTag === t.tag ? "text-brand" : "text-text-secondary"}`}>
-                {t.tag}
+              <div
+                className={`text-xs font-semibold truncate ${activeTag === tag ? "text-brand" : "text-text-secondary"}`}
+              >
+                {tag}
               </div>
-              <div className="text-[10px] text-text-muted">{t.count} posts</div>
             </div>
           </button>
-        ))}
-      </div>
+        </div>
+      ))}
 
       <Divider className="mb-4" />
 
       <div>
         <div className="text-[10px] font-bold text-text-muted tracking-[1.2px] uppercase mb-2 pl-0.5">
-          Quick Access →
+          Sponsored
         </div>
-        {quickTags.map((tag) => (
-          <button
-            key={tag}
-            onClick={() => {
-              onTagClick(activeTag === tag ? "" : tag);
-              onClose?.();
-            }}
-            className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition-all duration-150 hover:text-text-primary ${
-              activeTag === tag ? "text-brand" : "text-text-muted"
-            }`}
-          >
-            {tag}
-          </button>
-        ))}
+
+        <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-lg p-3 overflow-hidden relative group cursor-pointer hover:border-purple-500/40 transition-all">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/5 to-purple-500/0" />
+
+          <div className="relative z-10 flex flex-col gap-2">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-10 h-10 rounded-md bg-purple-500/30 flex items-center justify-center text-lg shrink-0">
+                🏪
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xs font-bold text-text-primary truncate">
+                  Campus Cafe
+                </h3>
+                <p className="text-[10px] text-text-muted">Coffee & Snacks</p>
+              </div>
+            </div>
+
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              10% off for students. Visit us near campus!
+            </p>
+
+            <button className="w-full bg-purple-500 hover:bg-purple-600 text-white text-[11px] font-bold py-1.5 rounded-md transition-all">
+              Learn More
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="h-10" />

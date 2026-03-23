@@ -25,7 +25,7 @@ function GroupRightSidebar({
   const { setActivePage } = usePage();
 
   const content = (
-    <aside className="w-60 flex-shrink-0 px-4 py-5 border-l border-white/5">
+    <aside className="w-60 flex-shrink-0 px-4 py-5 border-l mt-[60px] md:mt-0 border-white/5">
       <div className="mb-8">
         <SectionHeader
           title="Campus Events"
