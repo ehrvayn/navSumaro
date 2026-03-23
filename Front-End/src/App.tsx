@@ -5,7 +5,7 @@ import HomePage from "./pages/HomePage";
 import MarketplacePage from "./pages/marketplace/MarketplacePage";
 import CreatePostModal from "./components/modals/CreatePostModal";
 import PostDetailModal from "./components/modals/PostDetailModal";
-import CreateListModal from "./components/modals/CreateListModal";
+import CreateListModal from "./components/modals/CreateListingModal";
 import MessagesPage from "./pages/message/MessagesPage";
 import NotificationsPage from "./pages/NotificationPage";
 import ListDetailPage from "./pages/marketplace/ListDetailPage";
@@ -97,7 +97,7 @@ const App: React.FC = () => {
       case "listDetail":
         return selectedListing ? (
           <ListDetailPage
-            list={selectedListing}
+            listing={selectedListing}
             onLike={handleListLike}
             onSold={handleSold}
             onBack={() => setActivePage("marketplace")}

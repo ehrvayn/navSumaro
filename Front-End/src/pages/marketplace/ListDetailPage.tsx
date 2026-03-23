@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MarketplaceListing, Comment, Message } from "../../types";
 import { Avatar } from "../../components/ui";
 import { useCurrentUser } from "../../context/CurrentUserContex";
 import { useListings } from "../../context/ListingContext";
 import { useMessages } from "../../context/MessageContext";
-import CommentThread from "../../components/ui/CommentThread";
+import { usePosts } from "../../context/PostContext";
+import { usePage } from "../../context/PageContex";
 import ConversationPage from "../message/ConversationPage";
+import ListingingCommentThread from "../../components/ui/CommentListingThread";
 import {
   Heart,
   CheckCircle2,
@@ -19,8 +21,8 @@ import {
   ShoppingBag,
 } from "lucide-react";
 
-interface ListDetailPageProps {
-  list: MarketplaceListing;
+interface ListingDetailPageProps {
+  listing: MarketplaceListing;
   onLike: (id: string) => void;
   onBack: () => void;
   onSold: (id: string) => void;
@@ -37,43 +39,87 @@ const conditionColor: Record<MarketplaceListing["condition"], string> = {
 const TITLE_LIMIT = 80;
 const DESC_LIMIT = 200;
 
-const ListDetailPage: React.FC<ListDetailPageProps> = ({
-  list,
+const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
+  listing,
   onLike,
   onBack,
   onSold,
 }) => {
   const [comment, setComment] = useState("");
-  const { getComments, addComment, likeComment } = useListings();
-  const comments = getComments(list.id);
+  const { getComments, addComment, likeComment, fetchListingComments } =
+    useListings();
+  const comments = getComments(listing.id);
   const [currentImage, setCurrentImage] = useState(0);
-  const [isSold, setIsSold] = useState(list.sold);
+  const [isSold, setIsSold] = useState(listing.sold);
   const [showFullTitle, setShowFullTitle] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const { currentUser } = useCurrentUser();
+  const { setActivePage } = usePage();
+  const { getUserData } = usePosts();
   if (!currentUser) return null;
 
-  const isTitleLong = list.title.length > TITLE_LIMIT;
-  const isDescLong = (list.description?.length ?? 0) > DESC_LIMIT;
+  const isTitleLong = listing.title.length > TITLE_LIMIT;
+  const isDescLong = (listing.description?.length ?? 0) > DESC_LIMIT;
 
   const { Messages, setSelectedConversation, selectedConversation } =
     useMessages();
 
-  const handleMessage = () => {
+  useEffect(() => {
+    fetchListingComments(listing.id);
+  }, [listing.id]);
+
+  const timeAgo = (() => {
+    const now = new Date();
+    const date = new Date(listing.createdAt);
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    if (seconds < 60) return "Just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months}mo ago`;
+    const years = Math.floor(months / 12);
+    return `${years}y ago`;
+  })();
+
+  const getAuthorInitials = () => {
+    if (listing.seller.accountType === "organization") {
+      return (listing.seller as any).name?.[0] ?? "";
+    }
+    return (
+      (listing.seller.firstname?.[0] ?? "") +
+      (listing.seller.lastname?.[0] ?? "")
+    );
+  };
+
+  const handleMessage = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const existingConversation = Messages.find(
       (m) =>
-        m.participant.id === list.seller.id &&
-        m.participant.firstname === list.seller.firstname,
+        m.participantId === listing.seller.id ||
+        m.participant?.id === listing.seller.id,
     );
 
     const conversation = (existingConversation ?? {
-      id: `new-${list.seller.id}-${Date.now()}`,
-      participantId: list.seller.id,
-      firstname: list.seller.firstname,
-      lastname: list.seller.lastname,
-      avatar: list.seller.avatar,
+      id: `new-${listing.seller.id}-${Date.now()}`,
+      participantId: listing.seller.id,
+      participant: {
+        id: listing.seller.id,
+        firstname: listing.seller.firstname,
+        lastname: listing.seller.lastname,
+        avatar: listing.seller.avatar,
+        isOnline: false,
+        program: listing.seller.program,
+        accountType: "student" as const,
+      },
+      firstname: listing.seller.firstname,
+      lastname: listing.seller.lastname,
+      avatar: listing.seller.avatar,
       isOnline: false,
-      program: list.seller.program,
+      program: listing.seller.program,
       accountType: "student" as const,
     }) as Message;
 
@@ -90,9 +136,9 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
   }
 
   const handleReply = (parentId: string, text: string) => {
-    addComment(list.id, {
-      id: `r${Date.now()}`,
-      postId: list.id,
+    addComment(listing.id, {
+      id: "",
+      postId: listing.id,
       parentId,
       author: { ...currentUser, isOnline: true },
       text,
@@ -104,9 +150,9 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
 
   const submitComment = () => {
     if (!comment.trim()) return;
-    addComment(list.id, {
-      id: `c${Date.now()}`,
-      postId: list.id,
+    addComment(listing.id, {
+      id: "",
+      postId: listing.id,
       parentId: null,
       author: { ...currentUser, isOnline: true },
       text: comment,
@@ -118,15 +164,16 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
   };
 
   const handleCommentLike = (id: string) => {
-    likeComment(list.id, id);
+    likeComment(listing.id, id);
   };
 
   const prevImage = () =>
-    setCurrentImage((p) => (p === 0 ? list.images.length - 1 : p - 1));
+    setCurrentImage((p) => (p === 0 ? listing.images.length - 1 : p - 1));
   const nextImage = () =>
-    setCurrentImage((p) => (p === list.images.length - 1 ? 0 : p + 1));
-  const topLevel = comments.filter((c) => c.parentId === null);
-
+    setCurrentImage((p) => (p === listing.images.length - 1 ? 0 : p + 1));
+  const topLevel = comments.filter(
+    (c) => c.parentId === null || (c as any).parent_id === null,
+  );
   return (
     <div className="flex flex-col h-[calc(100vh-60px)] bg-base overflow-hidden">
       <div className="shrink-0 border-b border-border bg-base-surface/50 px-4 md:px-8 py-3 z-20">
@@ -138,7 +185,7 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
           <span>Marketplace</span>
           <span className="text-border mx-1">/</span>
           <span className="text-text-primary truncate max-w-[150px] md:max-w-[300px]">
-            {list.title}
+            {listing.title}
           </span>
         </button>
       </div>
@@ -146,15 +193,15 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-base-surface overflow-y-auto lg:overflow-hidden">
         <div className="w-full lg:w-[60%] flex flex-col border-b lg:border-b-0 lg:border-r border-border bg-base lg:overflow-y-auto custom-scrollbar">
           <div className="relative aspect-[4/3] md:aspect-video shrink-0 bg-black/40 overflow-hidden isolate">
-            {list.images.length > 0 ? (
+            {listing.images.length > 0 ? (
               <>
                 <img
-                  src={list.images[currentImage]}
+                  src={listing.images[currentImage]}
                   className="absolute inset-0 w-full h-full object-cover blur-2xl scale-150 opacity-50"
                   alt=""
                 />
                 <img
-                  src={list.images[currentImage]}
+                  src={listing.images[currentImage]}
                   className="relative z-10 w-full h-full object-contain"
                   alt=""
                 />
@@ -174,7 +221,7 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
               </div>
             )}
 
-            {list.images.length > 1 && (
+            {listing.images.length > 1 && (
               <>
                 <button
                   onClick={prevImage}
@@ -199,18 +246,31 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
           <div className="pt-6 md:pt-10 px-6 md:px-10">
             <div className="flex flex-col sm:flex-row md:items-center justify-between gap-6 mb-8 pb-6 border-b border-border/50">
               <div className="flex items-center gap-4">
-                <Avatar initials={list.seller.avatar} size="sm" />
+                <button
+                  className=""
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (listing.seller.id === currentUser.id) {
+                      setActivePage("myprofile");
+                    } else {
+                      getUserData(listing.seller.id);
+                      setActivePage("profile");
+                    }
+                  }}
+                >
+                  <Avatar initials={getAuthorInitials()} size="sm" />
+                </button>
                 <div>
                   <div className="flex items-center gap-1.5">
                     <span className="text-[12px] sm:text-[14px] font-bold text-text-primary">
-                      {list.seller.firstname}
+                      {listing.seller.firstname}
                     </span>
-                    {list.seller.isVerified && (
+                    {listing.seller.isVerified && (
                       <CheckCircle2 size={12} className="text-green-500" />
                     )}
                   </div>
                   <p className="text-[9px] sm:text-[10px] text-text-muted font-medium uppercase tracking-wider">
-                    {list.seller.university} · {list.createdAt}
+                    {listing.seller.university} <span className="text-[15px]">|</span> {timeAgo}
                   </p>
                 </div>
               </div>
@@ -219,7 +279,7 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
                   <button
                     onClick={() => {
                       setIsSold((p) => !p);
-                      onSold(list.id);
+                      onSold(listing.id);
                     }}
                     className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all ${isSold ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-base-hover text-text-muted border-border hover:text-red-400"}`}
                   >
@@ -228,15 +288,15 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
                 </div>
                 <div className="flex items-center gap-4 border-l border-border pl-4 sm:border-none sm:pl-0">
                   <button
-                    onClick={() => onLike(list.id)}
-                    className={`flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold transition-all ${list.liked ? "text-brand" : "text-text-muted"}`}
+                    onClick={() => onLike(listing.id)}
+                    className={`flex items-center gap-1 text-[10px] sm:text-[11px] font-bold transition-all ${listing.liked ? "text-brand" : "text-text-muted"}`}
                   >
                     <Heart
                       size={18}
-                      fill={list.liked ? "currentColor" : "none"}
+                      fill={listing.liked ? "currentColor" : "none"}
                       className="md:w-5 md:h-5 active:scale-[0.70] transition-transform hover:scale-[1.1]"
                     />
-                    <span>{list.likes}</span>
+                    <span className="w-5 h-5">{listing.likes}</span>
                   </button>
                   <button
                     onClick={handleMessage}
@@ -275,7 +335,7 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
                         : undefined
                     }
                   >
-                    {list.title}
+                    {listing.title}
                   </h1>
                   {isTitleLong && (
                     <button
@@ -294,13 +354,13 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
 
             <div className="flex items-center flex-wrap gap-4 mb-8">
               <span className="text-[20px] flex-wrap break-all md:text-[30px] font-black text-brand">
-                ₱{list.price.toLocaleString()}
+                ₱{listing.price.toLocaleString()}
               </span>
-              {list.condition && (
+              {listing.condition && (
                 <span
-                  className={`text-[10px] font-bold px-3 py-1 rounded-full border uppercase tracking-wider ${conditionColor[list.condition]}`}
+                  className={`text-[10px] font-bold px-3 py-1 rounded-full border uppercase tracking-wider ${conditionColor[listing.condition]}`}
                 >
-                  {list.condition}
+                  {listing.condition}
                 </span>
               )}
             </div>
@@ -308,15 +368,15 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
             <div className="flex flex-wrap gap-6 text-xs text-text-muted mb-10">
               <div className="flex items-center gap-2">
                 <MapPin size={16} className="text-brand/60" />
-                <span>{list.address}</span>
+                <span>{listing.address}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Tag size={16} className="text-brand/60" />
-                <span className="capitalize">{list.category}</span>
+                <span className="capitalize">{listing.category}</span>
               </div>
             </div>
 
-            {!showFullTitle && list.description && (
+            {!showFullTitle && listing.description && (
               <div className="bg-base-elevated border-t border-border -mx-6 md:-mx-10 mt-10">
                 <div className="px-6 md:px-10 pt-6 pb-6">
                   <p className="text-[10px] text-text-muted uppercase tracking-widest font-bold mb-3">
@@ -343,7 +403,7 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
                         : undefined
                     }
                   >
-                    {list.description}
+                    {listing.description}
                   </p>
                   {isDescLong && (
                     <button
@@ -379,7 +439,7 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
               </div>
             ) : (
               topLevel.map((c) => (
-                <CommentThread
+                <ListingingCommentThread
                   key={c.id}
                   comment={c}
                   comments={comments}
@@ -392,7 +452,7 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
 
           <div className="shrink-0 p-6 bg-base-surface border-t border-border">
             <div className="flex items-center gap-3">
-              <Avatar initials={currentUser.avatar} size="sm" />
+              <Avatar initials={getAuthorInitials()} size="sm" />
               <div className="relative flex-1">
                 <input
                   value={comment}
@@ -417,4 +477,4 @@ const ListDetailPage: React.FC<ListDetailPageProps> = ({
   );
 };
 
-export default ListDetailPage;
+export default ListingDetailPage;

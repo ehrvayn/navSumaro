@@ -12,6 +12,7 @@ import MessageRoute from "./src/routes/MessageRoute.js";
 import { sendMessage } from "./src/services/message/sendMessage.js";
 import { query } from "./src/database/Connection.js";
 import orgRoute from "./src/routes/orgRoute.js";
+import listingRoute from "./src/routes/listingRoute.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -28,6 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/org", orgRoute);
+app.use("/listing", listingRoute);
 app.use("/message", MessageRoute);
 app.use("/group", GroupRoute);
 app.use("/user", UserRoute);
@@ -42,8 +44,6 @@ app.use("*", (req: Request, res: Response) => {
 });
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
-
   socket.on("user_connected", (userId: string) => {
     userSockets.set(userId, socket.id);
     console.log(`User ${userId} connected with socket ${socket.id}`);

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Post, Comment, User, Organization } from "../../types";
 import { Avatar, Tag } from "../ui";
 import { useCurrentUser } from "../../context/CurrentUserContex";
-import CommentThread from "../ui/CommentThread";
+import CommentThread from "../ui/CommentPostThread";
 import { usePosts } from "../../context/PostContext";
 import { IoArrowRedoOutline } from "react-icons/io5";
 import { IoArrowRedoSharp } from "react-icons/io5";

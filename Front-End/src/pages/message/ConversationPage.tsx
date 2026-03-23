@@ -36,7 +36,6 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
   const { socket, setThreads } = useMessages();
   const { setActivePage } = usePage();
   const { getUserData, setPostUserProfileId } = usePosts();
-
   const participant = conversation.participant || conversation;
   const isOrgParticipant = participant?.accountType === "organization";
   const isOnline = !isGroup && (participant?.isOnline || conversation.isOnline);
@@ -55,6 +54,9 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
       (participant?.firstname?.[0] ?? "") + (participant?.lastname?.[0] ?? "")
     );
   };
+
+  const isTempId = (id: string) =>
+    id.startsWith("new-") || id.startsWith("conv-");
 
   useEffect(() => {
     socket.emit("join_conversation", threadIdRef.current);
@@ -82,9 +84,9 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
   useEffect(() => {
     const handleMessage = (newMessage: any) => {
       if (
-        threadIdRef.current.startsWith("conv-") &&
+        isTempId(threadIdRef.current) &&
         newMessage.threadId &&
-        !newMessage.threadId.startsWith("conv-")
+        !isTempId(newMessage.threadId)
       ) {
         threadIdRef.current = newMessage.threadId;
       }
@@ -99,7 +101,8 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
   }, [socket]);
 
   useEffect(() => {
-    if (!conversation.id || conversation.id.startsWith("conv-")) return;
+    if (!conversation.id || isTempId(conversation.id)) return;
+
     setThreads((prev) =>
       prev.map((t) => (t.id === conversation.id ? { ...t, unread: 0 } : t)),
     );
@@ -132,7 +135,7 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
   }, [messages]);
 
   useEffect(() => {
-    if (!conversation.id || conversation.id.startsWith("conv-")) {
+    if (!conversation.id || isTempId(conversation.id)) {
       setLoading(false);
       return;
     }
@@ -201,7 +204,7 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
   if (!currentUser) return null;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)]  md:h-[calc(100vh-60px)]">
+    <div className="flex flex-col h-[calc(100vh-120px)] md:h-[calc(100vh-60px)]">
       <div className="bg-base-surface border-b border-border px-4 py-3 flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3">
           <button

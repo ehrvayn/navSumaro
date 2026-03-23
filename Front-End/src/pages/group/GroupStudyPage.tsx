@@ -141,7 +141,6 @@ const GroupStudyPage: React.FC = () => {
   useEffect(() => {
     if (activeTab === "Chats" && activeGroupId) {
       fetchGroupMessages(activeGroupId);
-      // Clear unread when opening chats
       setGroupUnread((prev) => ({
         ...prev,
         [activeGroupId]: 0,

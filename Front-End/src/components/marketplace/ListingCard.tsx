@@ -3,7 +3,10 @@ import { MarketplaceListing, Message } from "../../types";
 import { Avatar, Button } from "../ui";
 import { MessageCircleMore } from "lucide-react";
 import { useMessages } from "../../context/MessageContext";
-import { CheckCircle2 } from "lucide-react";
+import { FaCheckCircle } from "react-icons/fa";
+import { usePosts } from "../../context/PostContext";
+import { usePage } from "../../context/PageContex";
+import { useCurrentUser } from "../../context/CurrentUserContex";
 
 interface ListingCardProps {
   listing: MarketplaceListing;
@@ -24,18 +27,54 @@ const conditionConfig: Record<
 const ListingCard: React.FC<ListingCardProps> = ({ listing, onClick }) => {
   const cond = conditionConfig[listing.condition];
   const { Messages, setSelectedConversation } = useMessages();
+  const { setActivePage } = usePage();
+  const { getUserData } = usePosts();
+  const { currentUser } = useCurrentUser();
+
+  const timeAgo = (() => {
+    const now = new Date();
+    const date = new Date(listing.createdAt);
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    if (seconds < 60) return "Just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months}mo ago`;
+    const years = Math.floor(months / 12);
+    return `${years}y ago`;
+  })();
+
+    const getAuthorInitials = () => {
+      if (listing.seller.accountType === "organization") {
+        return (listing.seller as any).name?.[0] ?? "";
+      }
+      return ((listing.seller).firstname?.[0] ?? "") + ((listing.seller).lastname?.[0] ?? "");
+    };
 
   const handleMessage = (e: React.MouseEvent) => {
     e.stopPropagation();
     const existingConversation = Messages.find(
       (m) =>
-        m.participantId === listing.seller.id &&
-        m.participant.firstname === listing.seller.firstname,
+        m.participantId === listing.seller.id ||
+        m.participant?.id === listing.seller.id,
     );
 
     const conversation = (existingConversation ?? {
       id: `new-${listing.seller.id}-${Date.now()}`,
       participantId: listing.seller.id,
+      participant: {
+        id: listing.seller.id,
+        firstname: listing.seller.firstname,
+        lastname: listing.seller.lastname,
+        avatar: listing.seller.avatar,
+        isOnline: false,
+        program: listing.seller.program,
+        accountType: "student" as const,
+      },
       firstname: listing.seller.firstname,
       lastname: listing.seller.lastname,
       avatar: listing.seller.avatar,
@@ -51,7 +90,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onClick }) => {
     <div className="relative">
       <div
         onClick={onClick}
-        className={`bg-base-surface border border-border rounded-md overflow-hidden transition-all duration-200 ${listing.sold ? "opacity-50" : "hover:border-orange-500/40 hover:shadow-brand cursor-pointer"} relative`}
+        className={`bg-base-surface border border-border rounded-md overflow-hidden ${listing.sold ? "opacity-50" : "hover:border-orange-500/80 cursor-pointer"} relative`}
       >
         <div className="h-[130px] bg-base-elevated flex items-center justify-center text-5xl border-b border-border relative">
           <img src={listing.images[0]} className="w-full h-full object-cover" />
@@ -62,28 +101,34 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onClick }) => {
             {listing.title}
           </h3>
 
-          <div className="mb-3">
-            <CheckCircle2 size={15} className="text-green-400" />
-          </div>
-
           <div className="text-[15px] md:text-[20px] font-extrabold text-brand mb-3">
             ₱{listing.price.toLocaleString()}
           </div>
 
           <div className="flex items-center gap-2 mb-3">
-            <Avatar
-              initials={listing.seller.avatar}
-              size="xs"
-              color="#2a3050"
-            />
+            <button
+              className=""
+              onClick={(e) => {
+                e.stopPropagation();
+                if (listing.seller.id === currentUser?.id) {
+                  setActivePage("myprofile");
+                } else {
+                  getUserData(listing.seller.id);
+                  setActivePage("profile");
+                }
+              }}
+            >
+            <Avatar initials={getAuthorInitials()} size="sm" />
+
+            </button>
             <div className="flex flex-col flex-wrap min-w-0">
-              <div className="flex gap-2 items-center">
+              <div className="flex gap-1 items-center">
                 <span className="text-[9px] sm:text-[11px] font-bold text-text-primary truncate">
                   {listing.seller.firstname}
                 </span>
                 {listing.seller.isVerified && (
                   <span className="text-[9px] text-green-400 font-semibold">
-                    ✓ Verified
+                    <FaCheckCircle size={12} />
                   </span>
                 )}
               </div>
@@ -111,7 +156,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onClick }) => {
       )}
 
       <div className="absolute top-2.5 right-2.5 bg-base-elevated border border-border rounded-full px-2 py-0.5 text-[10px] text-text-muted">
-        {listing.createdAt}
+        {timeAgo}
       </div>
     </div>
   );

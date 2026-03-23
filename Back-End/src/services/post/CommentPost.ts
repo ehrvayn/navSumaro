@@ -1,5 +1,5 @@
 import { query } from "../../database/Connection.js";
-import commentQuery from "../../models/commentQuery.js";
+import commentQuery from "../../models/commentPostQuery.js";
 
 export const create = async (commentData: any, currentUser: any) => {
   console.log("commentData:", commentData);

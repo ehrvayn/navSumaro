@@ -91,7 +91,7 @@ export interface MarketplaceListing {
     | "notes"
     | "supplies"
     | "other";
-  seller: User;
+  seller: User; 
   createdAt: string;
   likes: number;
   comments: number;

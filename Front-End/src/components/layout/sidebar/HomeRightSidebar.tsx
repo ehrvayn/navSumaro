@@ -60,7 +60,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ isOpen, onClose }) => {
       <Divider className="mb-5" />
 
       <section className="mb-6">
-        <SectionHeader title="Trending Topics" action="See all →" />
+        <SectionHeader title="Trending Topics (mock)" action="See all →" />
         <div className="flex flex-col">
           {trendingTopics.map((topic, i) => (
             <div

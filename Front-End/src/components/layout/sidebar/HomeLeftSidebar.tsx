@@ -58,6 +58,9 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
       </div>
 
       <Divider className="mb-5" />
+      <div className="text-[10px] font-bold text-text-muted tracking-[1.2px] uppercase mb-2 pl-0.5">
+        Top-10 tags
+      </div>
       {popularTags.map((tag) => (
         <div
           key={tag}
@@ -70,9 +73,6 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
             }}
             className={`sidebar-item mb-0.5`}
           >
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-orange-500/20">
-              <span className="text-[13px] font-bold text-orange-400">#</span>
-            </div>
             <div className="flex-1 min-w-0">
               <div
                 className={`text-xs font-semibold truncate ${activeTag === tag ? "text-brand" : "text-text-secondary"}`}
@@ -96,12 +96,12 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
           <div className="relative z-10 flex flex-col gap-2">
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-10 h-10 rounded-md bg-purple-500/30 flex items-center justify-center text-lg shrink-0">
+              <div className="w-10 h-10 rounded-md bg-purple-500/30 flex items-center justify-center text-[30px] shrink-0">
                 🏪
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-xs font-bold text-text-primary truncate">
-                  Campus Cafe
+                  Campus Cafe.
                 </h3>
                 <p className="text-[10px] text-text-muted">Coffee & Snacks</p>
               </div>

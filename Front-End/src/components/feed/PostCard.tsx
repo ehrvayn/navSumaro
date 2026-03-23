@@ -35,13 +35,11 @@ const PostCard: React.FC<PostCardProps> = ({
   onTagClick,
 }) => {
   const {
-    getComments,
     handleVote,
     setShowDeletePost,
     setDeletedPostId,
     setIsEditing,
     setEditPostId,
-    postUserProfileId,
     setPostUserProfileId,
     getUserData,
   } = usePosts();
@@ -214,7 +212,7 @@ const PostCard: React.FC<PostCardProps> = ({
             <LiaCommentDots size={18} />
             <span>{post.comments}</span>
           </div>
-          <div className="flex items-center ml-[-5px] g">
+          <div className="flex items-center ml-[-5px]">
             <button
               onClick={(e) => {
                 e.stopPropagation();
