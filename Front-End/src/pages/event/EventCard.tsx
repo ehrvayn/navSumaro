@@ -1,6 +1,5 @@
 import { ChevronDown, Clock, MapPin } from "lucide-react";
 import { Event } from "../../types";
-import { mockOrganizations } from "../../data/mockOrganization";
 import { useState } from "react";
 
 const orgTypeColor: Record<string, string> = {

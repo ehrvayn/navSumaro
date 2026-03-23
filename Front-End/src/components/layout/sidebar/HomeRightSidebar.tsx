@@ -1,5 +1,4 @@
 import React from "react";
-import { mockOrganizations } from "../../../data/mockOrganization";
 import { trendingTopics } from "../../../data/mockData";
 import { Divider, SectionHeader } from "../../ui";
 import { X } from "lucide-react";
@@ -25,9 +24,6 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ isOpen, onClose }) => {
         />
         <div className="flex flex-col gap-2">
           {events.slice(0, 5).map((event) => {
-            const org = mockOrganizations.find(
-              (o) => o.id === event.organizerId,
-            );
             return (
               <div
                 key={event.id}

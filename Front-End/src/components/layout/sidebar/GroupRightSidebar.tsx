@@ -3,7 +3,6 @@ import { X } from "lucide-react";
 import { Avatar } from "../../ui";
 import { SectionHeader } from "../../ui";
 import { usePage } from "../../../context/PageContex";
-import { mockOrganizations } from "../../../data/mockOrganization";
 import { Group, GroupMember } from "../../../types/index";
 import { useEvent } from "../../../context/EventContex";
 
@@ -35,7 +34,6 @@ function GroupRightSidebar({
         />
         <div className="flex flex-col gap-3 mt-4">
           {events.slice(0, 5).map((e) => {
-            const org = mockOrganizations.find((o) => o.id === e.organizerId);
             return (
               <div
                 key={e.id}

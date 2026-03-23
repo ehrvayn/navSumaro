@@ -7,7 +7,6 @@ import React, {
   useRef,
 } from "react";
 import { Message, GroupConversation, GroupMessage } from "../types";
-import { mockGroupConversations } from "../data/mockGroupConversation";
 import { io, Socket } from "socket.io-client";
 import { useCurrentUser } from "./CurrentUserContex";
 
@@ -37,7 +36,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [Messages, setMessages] = useState<Message[]>([]);
-  const [groupConversations, setGroupConversations] = useState<GroupConversation[]>(mockGroupConversations);
+  const [groupConversations, setGroupConversations] = useState<GroupConversation[]>([]);
   const [showCreateMessage, setShowCreateMessage] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<ChatSession | null>(null);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
