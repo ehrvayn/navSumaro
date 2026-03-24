@@ -16,17 +16,27 @@ import listingRoute from "./src/routes/listingRoute.js";
 
 const app = express();
 const server = http.createServer(app);
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://navsumaro.vercel.app",
+];
+
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "https://navsumaro.onrender.com"],
+    origin: allowedOrigins,
     credentials: true,
+    methods: ["GET", "POST"],
   },
 });
 
 const PORT = process.env.PORT || 5000;
 const userSockets = new Map<string, string>();
 
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -72,10 +82,7 @@ io.on("connection", (socket) => {
       OR ("participantOneId" = $1::uuid AND "orgParticipantTwoId" = $2::uuid)
       OR ("orgParticipantOneId" = $1::uuid AND "orgParticipantTwoId" = $2::uuid)
     `;
-      const existsResult = await query(existsQuery, [
-        data.senderId,
-        data.recipientId,
-      ]);
+      const existsResult = await query(existsQuery, [data.senderId, data.recipientId]);
       const threadExists = existsResult.rows.length > 0;
 
       const result = await sendMessage(
@@ -157,9 +164,7 @@ io.on("connection", (socket) => {
 
     if (disconnectedUserId) {
       try {
-        await query(`UPDATE users SET "isOnline" = false WHERE id = $1`, [
-          disconnectedUserId,
-        ]);
+        await query(`UPDATE users SET "isOnline" = false WHERE id = $1`, [disconnectedUserId]);
       } catch (err) {
         console.error("Failed to set user offline:", err);
       }
