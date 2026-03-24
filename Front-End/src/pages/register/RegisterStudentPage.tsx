@@ -12,7 +12,6 @@ import { IoReturnDownBackSharp } from "react-icons/io5";
 import { useState } from "react";
 import { useLogin } from "../../context/LoginContex";
 
-
 interface RegisterStudentPageProps {
   onBack: () => void;
   onRegister: (data: any) => void;
@@ -35,6 +34,7 @@ function RegisterStudentPage({
   const [program, setProgram] = useState("");
   const [yearLevel, setYearLevel] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
   const { setIsRegister } = useLogin();
 
   const validate = () => {
@@ -71,6 +71,7 @@ function RegisterStudentPage({
       return;
     }
     setErrors({});
+    setLoading(true);
 
     const data = {
       email,
@@ -100,6 +101,8 @@ function RegisterStudentPage({
     } catch (error) {
       console.error("Register error:", error);
       alert("Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -368,10 +371,11 @@ function RegisterStudentPage({
 
         <div className="flex items-center flex-col gap-1">
           <button
-            className="w-full bg-brand mb-4 hover:bg-orange-600 text-white font-bold text-[13px] py-2.5 rounded-md transition-colors"
+            className="w-full bg-brand mb-4 hover:bg-orange-600 text-white font-bold text-[13px] py-2.5 rounded-md transition-colors disabled:opacity-50"
             onClick={handleRegister}
+            disabled={loading}
           >
-            Create Account
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
           <div className="h-px w-[80%] bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
           <button

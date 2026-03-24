@@ -28,6 +28,7 @@ function RegisterOrg({ onBack, onRegisterSuccess }: RegisterOrgProps) {
   const [university, setUniversity] = useState("");
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -58,15 +59,13 @@ function RegisterOrg({ onBack, onRegisterSuccess }: RegisterOrgProps) {
 
   const handleRegister = async () => {
     const validationErrors = validate();
-    
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      console.log("Validation failed");
       return;
     }
-    
     setErrors({});
-    
+    setLoading(true);
+
     const data = {
       accountType: "organization",
       name,
@@ -76,7 +75,6 @@ function RegisterOrg({ onBack, onRegisterSuccess }: RegisterOrgProps) {
       university,
       description,
     };
-
 
     try {
       const response = await fetch("https://navsumaro.onrender.com/org/register", {
@@ -96,6 +94,8 @@ function RegisterOrg({ onBack, onRegisterSuccess }: RegisterOrgProps) {
     } catch (error) {
       console.error("Register error:", error);
       alert("Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -355,10 +355,11 @@ function RegisterOrg({ onBack, onRegisterSuccess }: RegisterOrgProps) {
       <div className="flex items-center flex-col gap-1">
         <button
           type="button"
-          className="w-full bg-brand mb-4 hover:bg-orange-600 text-white font-bold text-[13px] py-2.5 rounded-md transition-colors"
+          className="w-full bg-brand mb-4 hover:bg-orange-600 text-white font-bold text-[13px] py-2.5 rounded-md transition-colors disabled:opacity-50"
           onClick={handleRegister}
+          disabled={loading}
         >
-          Create Account
+          {loading ? "Creating Account..." : "Create Account"}
         </button>
         <div className="h-px w-[80%] bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
         <button

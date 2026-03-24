@@ -14,16 +14,16 @@ function LoginPage() {
     handleLogin,
     isRegister,
     setIsRegister,
+    loading,
   } = useLogin();
 
   return (
-    <div className={`min-h-screen bg-base overflow-hidden ${isRegister ? "flex items-start justify-center py-8 px-4" : "lg:grid flex lg:grid-cols-[1.5fr_1fr]"}`}>
-
+    <div
+      className={`min-h-screen bg-base overflow-hidden ${isRegister ? "flex items-start justify-center py-8 px-4" : "lg:grid flex lg:grid-cols-[1.5fr_1fr]"}`}
+    >
       {!isRegister && (
         <div className="hidden lg:flex flex-col justify-between p-12 bg-base-elevated border-l border-border relative overflow-hidden">
-
           <img src={Logo} className="w-[160px] relative z-10" />
-
           <div className="flex flex-col gap-8 relative z-10">
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2 text-brand text-[11px] font-bold uppercase tracking-widest">
@@ -35,7 +35,6 @@ function LoginPage() {
                 Your entire campus.
               </h2>
             </div>
-
             <div className="grid grid-cols-2 gap-3">
               {[
                 {
@@ -76,7 +75,6 @@ function LoginPage() {
               ))}
             </div>
           </div>
-
           <p className="text-[11px] text-text-muted relative z-10">
             © 2026 NavSumaro
           </p>
@@ -148,10 +146,11 @@ function LoginPage() {
 
             <div className="flex flex-col gap-2">
               <button
-                className="w-full bg-brand hover:bg-orange-600 text-white font-bold text-[13px] py-2.5 rounded-md transition-colors"
+                className="w-full bg-brand hover:bg-orange-600 text-white font-bold text-[13px] py-2.5 rounded-md transition-colors disabled:opacity-50"
                 onClick={handleLogin}
+                disabled={loading}
               >
-                Sign In
+                {loading ? "Signing In..." : "Sign In"}
               </button>
               <div className="flex items-center gap-3 my-1">
                 <div className="flex-1 h-px bg-border" />

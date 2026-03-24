@@ -15,6 +15,7 @@ interface LoginContextType {
   setIsRegister: React.Dispatch<React.SetStateAction<boolean>>;
   loginError: string;
   setLoginError: React.Dispatch<React.SetStateAction<string>>;
+  loading: boolean;
 }
 
 const LoginContext = createContext<LoginContextType | null>(null);
@@ -27,6 +28,7 @@ export const LoginProvider: React.FC<{ children: React.ReactNode }> = ({
   const [password, setPassword] = useState("");
   const [showLogout, setShowLogout] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [loading, setLoading] = useState(false);
   const { setCurrentUser, refreshUser } = useCurrentUser();
   const [isRegister, setIsRegister] = useState(false);
 
@@ -38,6 +40,7 @@ export const LoginProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handleLogin = async () => {
     setLoginError("");
+    setLoading(true);
     try {
       const response = await fetch("https://navsumaro.onrender.com/user/login", {
         method: "POST",
@@ -59,6 +62,8 @@ export const LoginProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch (error) {
       console.error("Login error:", error);
       setLoginError("Something went wrong!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -77,6 +82,7 @@ export const LoginProvider: React.FC<{ children: React.ReactNode }> = ({
         setShowLogout,
         loginError,
         setLoginError,
+        loading,
       }}
     >
       {children}
