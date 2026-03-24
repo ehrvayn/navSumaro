@@ -20,14 +20,8 @@ import { Message } from "../types";
 import { ChevronDown } from "lucide-react";
 
 function ProfilePage() {
-  const {
-    posts,
-    setSelectedPostId,
-    searchQuery,
-    setShowCreatePost,
-    postUserProfileId,
-    draft,
-  } = usePosts();
+  const { posts, setSelectedPostId, searchQuery, setShowCreatePost, draft } =
+    usePosts();
   const { setSelectedConversation, selectedConversation, Messages } =
     useMessages();
   const [activeTag, setActiveTag] = useState<string | null>(null);
@@ -174,7 +168,10 @@ function ProfilePage() {
                       {getDisplayName()}
                     </h1>
                     {draft.isVerified && (
-                      <FaCheckCircle size={15} className="text-green-400" />
+                      <FaCheckCircle
+                        size={15}
+                        className={`${isOrg ? "text-blue-400" : "text-green-400"}`}
+                      />
                     )}
                   </div>
                   <p className="text-[11px] text-text-muted mt-0.5">
@@ -276,7 +273,9 @@ function ProfilePage() {
                         <p className="text-[9px] text-text-muted uppercase tracking-wider font-semibold">
                           {label}
                         </p>
-                        <p className={`text-justify text-[12px] text-text-primary font-medium`}>
+                        <p
+                          className={`text-justify text-[12px] text-text-primary font-medium`}
+                        >
                           {String(draft[key] || "N/A")}
                         </p>
                       </div>
