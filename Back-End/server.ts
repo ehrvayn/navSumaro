@@ -17,7 +17,10 @@ import listingRoute from "./src/routes/listingRoute.js";
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "https://navsumaro.onrender.com" },
+  cors: {
+    origin: ["http://localhost:5173", "https://navsumaro.vercel.app"],
+    credentials: true,
+  },
 });
 
 const PORT = process.env.PORT || 5000;
