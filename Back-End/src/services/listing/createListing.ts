@@ -20,39 +20,52 @@ export const createListing = async (listingData: any, sellerId: any) => {
   }
 };
 
+
 export const likeListing = async (listingData: any, currentUser: any) => {
-  if (!listingData.id) return { success: false, message: "listing ID is required" };
-  if (!currentUser?.id) return { success: false, message: "Seller ID is required" };
+  if (!listingData.id)
+    return { success: false, message: "listing ID is required" };
+  if (!currentUser?.id)
+    return { success: false, message: "User ID is required" };
 
   const { id: listingId } = listingData;
   const userId = currentUser.id;
 
   try {
-    const { query: getSql, values: getValues } = listingQuery.getLike(listingId, userId);
+    const { query: getSql, values: getValues } =
+      listingQuery.getLike(listingId, userId);
+
     const existing = await query(getSql, getValues);
     const alreadyLiked = existing.rows.length > 0;
 
     const amount = alreadyLiked ? -1 : 1;
-    const repAmount = alreadyLiked ? -2 : 2;
 
     if (alreadyLiked) {
-      const { query: sql, values } = listingQuery.deleteLike(listingId, userId);
+      const { query: sql, values } =
+        listingQuery.deleteLike(listingId, userId);
       await query(sql, values);
     } else {
-      const { query: sql, values } = listingQuery.insertLike(listingId, userId);
+      const { query: sql, values } =
+        listingQuery.insertLike(listingId, userId);
       await query(sql, values);
     }
 
-    const { query: incrSql, values: incrValues } = listingQuery.incrementLikes(listingId, amount);
+    const { query: incrSql, values: incrValues } =
+      listingQuery.incrementLikes(listingId, amount);
+
     const updated = await query(incrSql, incrValues);
 
     const sellerId = updated.rows[0].seller_id;
+
     if (sellerId && sellerId !== userId) {
-      const { query: repSql, values: repValues } = usersQuery.incrementReputation(sellerId, repAmount);
+      const { query: repSql, values: repValues } =
+        usersQuery.recalculateReputation(sellerId);
       await query(repSql, repValues);
     }
 
-    return { success: true, listing: { ...updated.rows[0], liked: !alreadyLiked } };
+    return {
+      success: true,
+      listing: { ...updated.rows[0], liked: !alreadyLiked },
+    };
   } catch (err) {
     console.error("like listing error:", err);
     return { success: false, message: "Something went wrong" };

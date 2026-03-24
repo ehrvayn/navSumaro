@@ -160,5 +160,27 @@ const usersQuery = {
     query: `UPDATE users SET "yearLevel" = $1 WHERE id = $2`,
     values: [yearLevel, id],
   }),
+
+
+  recalculateReputation: (userId: string) => ({
+  query: `
+    UPDATE users
+    SET reputation = (
+      SELECT COALESCE(SUM(
+        CASE 
+          WHEN pv.type = 'up' THEN 1
+          WHEN pv.type = 'down' THEN -1
+          ELSE 0
+        END
+      ), 0)
+      FROM posts p
+      LEFT JOIN post_votes pv ON pv.post_id = p.id
+      WHERE p."studentAuthorId" = users.id
+         OR p."orgAuthorId" = users.id
+    )
+    WHERE id = $1
+  `,
+  values: [userId],
+}),
 };
 export default usersQuery;
