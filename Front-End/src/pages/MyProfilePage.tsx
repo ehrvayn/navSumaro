@@ -116,7 +116,7 @@ function MyProfilePage() {
       let response;
 
       if (isOrganization) {
-        response = await fetch(`http://localhost:5000/org/update`, {
+        response = await fetch(`https://navsumaro.onrender.com/org/update`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -129,7 +129,7 @@ function MyProfilePage() {
       } else {
         const decoded = jwtDecode<JWTPayload>(token);
         response = await fetch(
-          `http://localhost:5000/user/updateUser/${decoded.id}`,
+          `https://navsumaro.onrender.com/user/updateUser/${decoded.id}`,
           {
             method: "PUT",
             headers: {

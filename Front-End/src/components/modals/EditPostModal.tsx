@@ -106,7 +106,7 @@ const EditPostModal: React.FC<EditPostModalProps> = ({
     if (!token) return;
     try {
       const response = await fetch(
-        `http://localhost:5000/post/update/${editPostId}`,
+        `https://navsumaro.onrender.com/post/update/${editPostId}`,
         {
           method: "PUT",
           headers: {

@@ -3,8 +3,7 @@ import { Group, GroupMember } from "../types";
 import { useCurrentUser } from "./CurrentUserContex";
 import { io } from "socket.io-client";
 
-// shared socket singleton — same URL as MessageContext
-const socket = io("http://localhost:5000");
+const socket = io("https://navsumaro.onrender.com");
 
 interface GroupContextType {
   groups: Group[];
@@ -73,7 +72,7 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch("http://localhost:5000/group/retrieveAll", {
+      const response = await fetch("https://navsumaro.onrender.com/group/retrieveAll", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -97,8 +96,8 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!token) return;
     const targetId = groupId ?? activeGroupId;
     const url = val
-      ? `http://localhost:5000/group/join/${targetId}`
-      : `http://localhost:5000/group/leave/${targetId}`;
+      ? `https://navsumaro.onrender.com/group/join/${targetId}`
+      : `https://navsumaro.onrender.com/group/leave/${targetId}`;
     const method = val ? "POST" : "DELETE";
     try {
       const response = await fetch(url, {
@@ -148,7 +147,7 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch("http://localhost:5000/group/create", {
+      const response = await fetch("https://navsumaro.onrender.com/group/create", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -172,7 +171,7 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!token) return;
     try {
       const response = await fetch(
-        `http://localhost:5000/group/kick/${groupId}/${memberId}`,
+        `https://navsumaro.onrender.com/group/kick/${groupId}/${memberId}`,
         {
           method: "DELETE",
           headers: {

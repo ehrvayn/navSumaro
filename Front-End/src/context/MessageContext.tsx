@@ -41,7 +41,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({
   const [selectedConversation, setSelectedConversation] = useState<ChatSession | null>(null);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [threads, setThreads] = useState<any[]>([]);
-  const socket = useMemo(() => io("http://localhost:5000"), []);
+  const socket = useMemo(() => io("https://navsumaro.onrender.com"), []);
   const { currentUser } = useCurrentUser();
   const currentUserRef = useRef(currentUser);
   const selectedConversationRef = useRef(selectedConversation);
@@ -64,7 +64,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch("http://localhost:5000/message/threads", {
+      const response = await fetch("https://navsumaro.onrender.com/message/threads", {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
       });

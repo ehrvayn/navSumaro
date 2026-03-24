@@ -77,7 +77,7 @@ const GroupStudyPage: React.FC = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/group/messages/get/${activeGroupId}`,
+          `https://navsumaro.onrender.com/group/messages/get/${activeGroupId}`,
           {
             method: "GET",
             headers: {
@@ -153,7 +153,7 @@ const GroupStudyPage: React.FC = () => {
     if (!token) return;
     try {
       const response = await fetch(
-        `http://localhost:5000/group/messages/get/${groupId}`,
+        `https://navsumaro.onrender.com/group/messages/get/${groupId}`,
         {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },

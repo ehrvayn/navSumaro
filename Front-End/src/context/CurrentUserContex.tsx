@@ -35,10 +35,10 @@ export const CurrentUserProvider: React.FC<{ children: React.ReactNode }> = ({
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      let endpoint = `http://localhost:5000/user/retrieve/${userId}`;
+      let endpoint = `https://navsumaro.onrender.com/user/retrieve/${userId}`;
       
       if (accountType === "organization") {
-        endpoint = `http://localhost:5000/org/retrieve/${userId}`;
+        endpoint = `https://navsumaro.onrender.com/org/retrieve/${userId}`;
       }
 
       const response = await fetch(endpoint, {

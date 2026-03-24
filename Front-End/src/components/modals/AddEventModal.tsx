@@ -73,7 +73,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
       };
 
       const response = await fetch(
-        `http://localhost:5000/org/event/create/${currentUser.id}`,
+        `https://navsumaro.onrender.com/org/event/create/${currentUser.id}`,
         {
           method: "POST",
           headers: {

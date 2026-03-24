@@ -27,7 +27,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       const response = await fetch(
-        "http://localhost:5000/org/event/retrieveAll",
+        "https://navsumaro.onrender.com/org/event/retrieveAll",
         {
           method: "GET",
           headers: {

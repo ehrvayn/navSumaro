@@ -79,7 +79,7 @@ function RegisterOrg({ onBack, onRegisterSuccess }: RegisterOrgProps) {
 
 
     try {
-      const response = await fetch("http://localhost:5000/org/register", {
+      const response = await fetch("https://navsumaro.onrender.com/org/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

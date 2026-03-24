@@ -112,7 +112,7 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
       if (!token) return;
       try {
         await fetch(
-          `http://localhost:5000/message/threads/read/${conversation.id}`,
+          `https://navsumaro.onrender.com/message/threads/read/${conversation.id}`,
           {
             method: "PATCH",
             headers: { Authorization: `Bearer ${token}` },
@@ -144,7 +144,7 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
       if (!token) return;
       try {
         const response = await fetch(
-          "http://localhost:5000/message/retrieveAll",
+          "https://navsumaro.onrender.com/message/retrieveAll",
           {
             method: "POST",
             headers: {
@@ -187,7 +187,7 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
     if (!token) return;
     try {
       const response = await fetch(
-        `http://localhost:5000/message/threads/delete/${conversation.id}`,
+        `https://navsumaro.onrender.com/message/threads/delete/${conversation.id}`,
         {
           method: "DELETE",
           headers: {

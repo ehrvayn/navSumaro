@@ -11,7 +11,7 @@ import {
 import { IoReturnDownBackSharp } from "react-icons/io5";
 import { useState } from "react";
 import { useLogin } from "../../context/LoginContex";
-import { FaCheckCircle } from "react-icons/fa";
+
 
 interface RegisterStudentPageProps {
   onBack: () => void;
@@ -84,7 +84,7 @@ function RegisterStudentPage({
     };
 
     try {
-      const response = await fetch("http://localhost:5000/user/register", {
+      const response = await fetch("https://navsumaro.onrender.com/user/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

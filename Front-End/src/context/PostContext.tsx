@@ -148,7 +148,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
         setLoadingMore(true);
       }
       const response = await fetch(
-        `http://localhost:5000/post/retrieveAll?page=${pageNum}&limit=20`,
+        `https://navsumaro.onrender.com/post/retrieveAll?page=${pageNum}&limit=20`,
         {
           method: "GET",
           headers: {
@@ -231,7 +231,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!token) return;
     try {
       const response = await fetch(
-        `http://localhost:5000/post/comment/retrieve/${postId}`,
+        `https://navsumaro.onrender.com/post/comment/retrieve/${postId}`,
         {
           method: "GET",
           headers: {
@@ -270,7 +270,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!token) return;
     try {
       const response = await fetch(
-        `http://localhost:5000/post/comment/create`,
+        `https://navsumaro.onrender.com/post/comment/create`,
         {
           method: "POST",
           headers: {
@@ -305,7 +305,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!token) return;
     try {
       const response = await fetch(
-        `http://localhost:5000/post/comment/like/${commentId}`,
+        `https://navsumaro.onrender.com/post/comment/like/${commentId}`,
         {
           method: "POST",
           headers: {
@@ -335,7 +335,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch("http://localhost:5000/post/create", {
+      const response = await fetch("https://navsumaro.onrender.com/post/create", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -376,7 +376,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch(`http://localhost:5000/post/delete/${id}`, {
+      const response = await fetch(`https://navsumaro.onrender.com/post/delete/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -471,7 +471,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     });
 
     try {
-      const response = await fetch(`http://localhost:5000/post/vote/${id}`, {
+      const response = await fetch(`https://navsumaro.onrender.com/post/vote/${id}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -535,7 +535,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!token) return;
     try {
       const response = await fetch(
-        `http://localhost:5000/post/retrieveAll?groupId=${groupId}`,
+        `https://navsumaro.onrender.com/post/retrieveAll?groupId=${groupId}`,
         {
           method: "GET",
           headers: {
@@ -566,7 +566,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
       const decoded = JSON.parse(atob(token.split(".")[1]));
       const currentUserAccountType = decoded.accountType;
 
-      let endpoint = `http://localhost:5000/user/retrieve/${userId}`;
+      let endpoint = `https://navsumaro.onrender.com/user/retrieve/${userId}`;
 
       let response = await fetch(endpoint, {
         method: "GET",
@@ -577,7 +577,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       if (!response.ok) {
-        endpoint = `http://localhost:5000/org/retrieve/${userId}`;
+        endpoint = `https://navsumaro.onrender.com/org/retrieve/${userId}`;
         response = await fetch(endpoint, {
           method: "GET",
           headers: {

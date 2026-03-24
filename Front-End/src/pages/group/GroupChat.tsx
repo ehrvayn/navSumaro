@@ -50,7 +50,7 @@ const GroupChat: React.FC<GroupChatProps> = ({ conversation }) => {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const response = await fetch("http://localhost:5000/group/send", {
+      const response = await fetch("https://navsumaro.onrender.com/group/send", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
