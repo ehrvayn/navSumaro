@@ -269,7 +269,7 @@ function MyProfilePage() {
                   {
                     icon: <Star size={13} className="text-yellow-400" />,
                     label: "Badges",
-                    value: currentUser.badges.length.toString(),
+                    value: (currentUser.badges?.length ?? 0).toString(),
                   },
                 ].map((stat) => (
                   <div
@@ -509,7 +509,7 @@ function MyProfilePage() {
                   </h2>
                 </div>
                 <div className="px-4 py-3 flex flex-wrap gap-2">
-                  {currentUser.badges.map((badge) => (
+                  {(currentUser.badges ?? []).map((badge) => (
                     <span
                       key={badge.id}
                       className="flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full border"
@@ -519,7 +519,6 @@ function MyProfilePage() {
                         backgroundColor: badge.color + "11",
                       }}
                     >
-                      <span>{badge.icon}</span>
                       {badge.label}
                     </span>
                   ))}

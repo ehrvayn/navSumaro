@@ -304,7 +304,6 @@ function ProfilePage() {
                         backgroundColor: badge.color + "11",
                       }}
                     >
-                      <span>{badge.icon}</span>
                       {badge.label}
                     </span>
                   ))}

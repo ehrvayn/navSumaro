@@ -54,7 +54,7 @@ const NotificationsPage: React.FC = () => {
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-extrabold text-text-primary">
-              Notifications
+              Notifications (mock)
             </h1>
             {unreadCount > 0 && (
               <span className="bg-brand text-white text-[10px] font-bold px-2 py-0.5 rounded-full">

@@ -8,9 +8,9 @@ import { usePosts } from "../../context/PostContext";
 import { usePage } from "../../context/PageContex";
 import ConversationPage from "../message/ConversationPage";
 import ListingingCommentThread from "../../components/ui/CommentListingThread";
+import { FaCheckCircle } from "react-icons/fa";
 import {
   Heart,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   MessageCircleMore,
@@ -266,25 +266,28 @@ const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                       {listing.seller.firstname}
                     </span>
                     {listing.seller.isVerified && (
-                      <CheckCircle2 size={12} className="text-green-500" />
+                      <FaCheckCircle size={12} className="text-green-500" />
                     )}
                   </div>
                   <p className="text-[9px] sm:text-[10px] text-text-muted font-medium uppercase tracking-wider">
-                    {listing.seller.university} <span className="text-[15px]">|</span> {timeAgo}
+                    {listing.seller.university}{" "}
+                    <span className="text-[15px]">|</span> {timeAgo}
                   </p>
                 </div>
               </div>
               <div className="flex items-center justify-between sm:justify-end gap-5 md:gap-4 px-2 py-2 sm:p-0 bg-base-hover sm:bg-transparent rounded-md">
                 <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => {
-                      setIsSold((p) => !p);
-                      onSold(listing.id);
-                    }}
-                    className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all ${isSold ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-base-hover text-text-muted border-border hover:text-red-400"}`}
-                  >
-                    {isSold ? "Sold" : "Mark sold"}
-                  </button>
+                  {listing.seller.id === currentUser.id && (
+                    <button
+                      onClick={() => {
+                        setIsSold((p) => !p);
+                        onSold(listing.id);
+                      }}
+                      className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all ${isSold ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-base-hover text-text-muted border-border hover:text-red-400"}`}
+                    >
+                      {isSold ? "Sold" : "Mark sold"}
+                    </button>
+                  )}
                 </div>
                 <div className="flex items-center gap-4 border-l border-border pl-4 sm:border-none sm:pl-0">
                   <button
@@ -296,7 +299,7 @@ const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                       fill={listing.liked ? "currentColor" : "none"}
                       className="md:w-5 md:h-5 active:scale-[0.70] transition-transform hover:scale-[1.1]"
                     />
-                    <span className="w-5 h-5">{listing.likes}</span>
+                    <span className="w-2">{listing.likes}</span>
                   </button>
                   <button
                     onClick={handleMessage}

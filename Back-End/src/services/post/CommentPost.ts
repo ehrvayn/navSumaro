@@ -1,5 +1,6 @@
 import { query } from "../../database/Connection.js";
 import commentQuery from "../../models/commentPostQuery.js";
+import usersQuery from "../../models/userQuery.js";
 
 export const create = async (commentData: any, currentUser: any) => {
   console.log("commentData:", commentData);
@@ -95,8 +96,8 @@ export const likeComment = async (commentData: any, currentUser: any) => {
     );
     const existing = await query(getSql, getValues);
     const alreadyLiked = existing.rows.length > 0;
-
     const amount = alreadyLiked ? -1 : 1;
+    const repAmount = alreadyLiked ? -5 : 5;
 
     if (alreadyLiked) {
       const { query: sql, values } = commentQuery.deleteLike(commentId, userId);
@@ -112,12 +113,17 @@ export const likeComment = async (commentData: any, currentUser: any) => {
     );
     const updated = await query(incrSql, incrValues);
 
+    const authorId = updated.rows[0].author_id;
+    const authorType = updated.rows[0].author_type;
+    if (authorId && authorId !== userId && authorType === "student") {
+      const { query: repSql, values: repValues } =
+        usersQuery.incrementReputation(authorId, repAmount);
+      await query(repSql, repValues);
+    }
+
     return {
       success: true,
-      comment: {
-        ...updated.rows[0],
-        liked: !alreadyLiked,
-      },
+      comment: { ...updated.rows[0], liked: !alreadyLiked },
     };
   } catch (err) {
     console.error("like comment error:", err);

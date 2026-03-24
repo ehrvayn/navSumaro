@@ -29,15 +29,22 @@ const usersQuery = {
   }),
   retrieveWithBadges: (id: any) => ({
     query: `
-    SELECT u.id, u.email, u.firstname, u.lastname, u."accountType", 
-           u.university, u.program, u."yearLevel", u.avatar, 
-           u.reputation, u."isVerified", u.created_at,
-           COALESCE(json_agg(b.*) FILTER (WHERE b.id IS NOT NULL), '[]') as badges
-    FROM users u
-    LEFT JOIN user_badges ub ON u.id = ub.user_id
-    LEFT JOIN badges b ON ub.badge_id = b.id
-    WHERE u.id = $1
-    GROUP BY u.id`,
+  SELECT u.id, u.email, u.firstname, u.lastname, u."accountType", 
+         u.university, u.program, u."yearLevel", u.avatar, 
+         u.reputation, u."isVerified", u.created_at,
+         COALESCE(json_agg(
+           json_build_object(
+             'id', b.id,
+             'label', b.label,
+             'icon', b.icon,
+             'color', b.color
+           )
+         ) FILTER (WHERE b.id IS NOT NULL), '[]'::json) as badges
+  FROM users u
+  LEFT JOIN user_badges ub ON u.id = ub.user_id
+  LEFT JOIN badges b ON ub.badge_id = b.id
+  WHERE u.id = $1
+  GROUP BY u.id`,
     values: [id],
   }),
   assignBadge: (userId: any, badgeId: any) => ({
@@ -51,6 +58,10 @@ const usersQuery = {
   delete: (id: any) => ({
     query: "DELETE FROM users WHERE id = $1",
     values: [id],
+  }),
+  incrementReputation: (userId: string, amount: number) => ({
+    query: `UPDATE users SET reputation = GREATEST(0, reputation + $2) WHERE id = $1`,
+    values: [userId, amount],
   }),
   retrieve: (email: string) => ({
     query: `SELECT 
@@ -104,16 +115,16 @@ const usersQuery = {
   }),
 
   // retrieveUser: () => ({
-  //  query:` SELECET id, 
-  //     email, 
-  //     firstname, 
-  //     lastname, 
-  //     "accountType", 
-  //     university, 
-  //     program, 
+  //  query:` SELECET id,
+  //     email,
+  //     firstname,
+  //     lastname,
+  //     "accountType",
+  //     university,
+  //     program,
   //     "isVerified",
   //     reputation,
-  //     "yearLevel", 
+  //     "yearLevel",
   //     avatar,
   //     created_at
   //   FROM users`,
