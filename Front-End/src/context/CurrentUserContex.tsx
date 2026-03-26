@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { jwtDecode } from "jwt-decode";
 import { User } from "../types";
+import api from "../lib/api";
 
 interface JWTPayload {
   id: string;
@@ -33,30 +34,27 @@ export const CurrentUserProvider: React.FC<{ children: React.ReactNode }> = ({
   const fetchUserProfile = useCallback(async (userId: string, accountType?: string) => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) return;
-
-      let endpoint = `https://navsumaro.onrender.com/user/retrieve/${userId}`;
-      
-      if (accountType === "organization") {
-        endpoint = `https://navsumaro.onrender.com/org/retrieve/${userId}`;
+      if (!token) {
+        setIsLoading(false);
+        return;
       }
 
-      const response = await fetch(endpoint, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      let endpoint = `/user/retrieve/${userId}`;
+      if (accountType === "organization") {
+        endpoint = `/org/retrieve/${userId}`;
+      }
 
-      if (response.ok) {
-        const data = await response.json();
-        setCurrentUser(data.data);
+      const response = await api.get(endpoint);
+
+      if (response.data && response.data.data) {
+        setCurrentUser(response.data.data);
       } else {
-        localStorage.removeItem("token");
         setCurrentUser(null);
       }
     } catch (error) {
       console.error("Failed to fetch user profile:", error);
+      localStorage.removeItem("token");
+      setCurrentUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -92,8 +90,12 @@ export const CurrentUserProvider: React.FC<{ children: React.ReactNode }> = ({
   const refreshUser = async () => {
     const token = localStorage.getItem("token");
     if (token) {
-      const decoded = jwtDecode<JWTPayload>(token);
-      await fetchUserProfile(decoded.id, decoded.accountType);
+      try {
+        const decoded = jwtDecode<JWTPayload>(token);
+        await fetchUserProfile(decoded.id, decoded.accountType);
+      } catch (e) {
+        console.error("Refresh failed", e);
+      }
     }
   };
 

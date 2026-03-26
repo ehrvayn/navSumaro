@@ -13,6 +13,7 @@ import {
   ArrowRight,
   X,
 } from "lucide-react";
+import api from "../../lib/api";
 
 interface EditPostModalProps {
   onClose: () => void;
@@ -102,24 +103,16 @@ const EditPostModal: React.FC<EditPostModalProps> = ({
   };
 
   const handleEditPost = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
     try {
-      const response = await fetch(
-        `https://navsumaro.onrender.com/post/update/${editPostId}`,
-        {
-          method: "PUT",
-          headers: {
-            authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ title, body, tags, type }),
-        },
-      );
+      const response = await api.put(`/post/update/${editPostId}`, {
+        title,
+        body,
+        tags,
+        type,
+      });
 
-      if (response.ok) {
-        const data = await response.json();
-        updatePostInState(data.post);
+      if (response.data || response.status === 200) {
+        updatePostInState(response.data.post);
         setIsEditing(false);
       }
     } catch (error) {

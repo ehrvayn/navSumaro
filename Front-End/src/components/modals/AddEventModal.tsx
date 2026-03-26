@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "../ui";
 import { usePage } from "../../context/PageContex";
+import api from "../../lib/api";
 import {
   ArrowRight,
   Rocket,
@@ -39,14 +40,12 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
     if (activePage !== "calendar") {
       onClose();
     }
-  }, [activePage]);
+  }, [activePage, onClose]);
 
   const handleCreate = async () => {
     if (!title.trim() || !startTime || !currentUser?.id) return;
 
     setLoading(true);
-    const token = localStorage.getItem("token");
-    if (!token) return;
 
     try {
       const date = new Date(startTime);
@@ -72,39 +71,27 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
         color,
       };
 
-      const response = await fetch(
-        `https://navsumaro.onrender.com/org/event/create/${currentUser.id}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(eventData),
-        },
-      );
+      const response = await api.post(`/org/event/create/${currentUser.id}`, eventData);
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          handleCreateEvent({
-            ...result.data,
-            organizerId: currentUser.id,
-            organizer: {
-              id: currentUser.id,
-              name: (currentUser as any).name || "",
-              avatar: currentUser.avatar,
-              organizationType:
-                (currentUser as any).organizationType || "student-org",
-              isVerified: currentUser.isVerified,
-            },
-          });
-          await getEvents();
-          onClose();
-        }
+      const result = response.data;
+      if (result.success) {
+        handleCreateEvent({
+          ...result.data,
+          organizerId: currentUser.id,
+          organizer: {
+            id: currentUser.id,
+            name: (currentUser as any).name || "",
+            avatar: currentUser.avatar,
+            organizationType:
+              (currentUser as any).organizationType || "student-org",
+            isVerified: currentUser.isVerified,
+          },
+        });
+        await getEvents();
+        onClose();
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       alert("Failed to create event");
     } finally {
       setLoading(false);

@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Avatar } from "../../components/ui";
+import api from "../../lib/api";
 import { useCurrentUser } from "../../context/CurrentUserContex";
 import { useMessages } from "../../context/MessageContext";
 import DeleteConversationModal from "../../components/modals/DeleteConversationModal";
 import { usePage } from "../../context/PageContex";
 import { usePosts } from "../../context/PostContext";
+
 import {
   SendHorizontal,
   ArrowLeft,
@@ -108,23 +110,15 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
     );
 
     const markRead = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
       try {
-        await fetch(
-          `https://navsumaro.onrender.com/message/threads/read/${conversation.id}`,
-          {
-            method: "PATCH",
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+        await api.patch(`/message/threads/read/${conversation.id}`);
       } catch (error) {
         console.error(error);
       }
     };
 
     markRead();
-  }, [conversation.id]);
+  }, [conversation.id, setThreads]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -140,22 +134,12 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
       return;
     }
     const fetchMessages = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
       try {
-        const response = await fetch(
-          "https://navsumaro.onrender.com/message/retrieveAll",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ threadId: conversation.id }),
-          },
-        );
-        if (response.ok) {
-          const data = await response.json();
+        const response = await api.post("/message/retrieveAll", { 
+          threadId: conversation.id 
+        });
+        const data = response.data;
+        if (data.success) {
           setLocalMessages(data.data ?? []);
         }
       } catch (error) {
@@ -183,20 +167,9 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
   };
 
   const handleDeleteConvo = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
     try {
-      const response = await fetch(
-        `https://navsumaro.onrender.com/message/threads/delete/${conversation.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-      if (response.ok) {
+      const response = await api.delete(`/message/threads/delete/${conversation.id}`);
+      if (response.data.success) {
         setThreads((prev) => prev.filter((t) => t.id !== conversation.id));
         onBack();
       }

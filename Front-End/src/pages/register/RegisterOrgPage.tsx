@@ -8,9 +8,9 @@ import {
   FileText,
   AlertCircle,
 } from "lucide-react";
+import api from "../../lib/api";
 import { IoReturnDownBackSharp } from "react-icons/io5";
 import { FaCheckCircle } from "react-icons/fa";
-import { useLogin } from "../../context/LoginContex";
 
 interface RegisterOrgProps {
   onBack: () => void;
@@ -66,7 +66,7 @@ function RegisterOrg({ onBack, onRegisterSuccess }: RegisterOrgProps) {
     setErrors({});
     setLoading(true);
 
-    const data = {
+    const payload = {
       accountType: "organization",
       name,
       email,
@@ -77,23 +77,16 @@ function RegisterOrg({ onBack, onRegisterSuccess }: RegisterOrgProps) {
     };
 
     try {
-      const response = await fetch("https://navsumaro.onrender.com/org/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const response = await api.post("/org/register", payload);
 
-      const result = await response.json();
-
-      if (!result.success) {
-        alert(result.message || "Registration failed");
-        return;
+      if (response.data.success) {
+        onRegisterSuccess();
+      } else {
+        alert(response.data.message || "Registration failed");
       }
-
-      onRegisterSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Register error:", error);
-      alert("Something went wrong");
+      alert(error.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }

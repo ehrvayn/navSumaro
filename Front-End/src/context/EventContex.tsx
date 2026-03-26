@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Event } from "../types";
+import api from "../lib/api";
 
 interface EventContextType {
   handleCreateEvent: (data: Omit<Event, "id" | "createdAt">) => void;
@@ -22,58 +23,39 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const getEvents = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
     try {
-      const response = await fetch(
-        "https://navsumaro.onrender.com/org/event/retrieveAll",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
+      const response = await api.get("/org/event/retrieveAll");
+      const data = response.data;
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          const filteredEvents = data.data.filter((e: Event) => {
-            if (!e.endTime) return true;
+      if (data.success) {
+        const filteredEvents = data.data.filter((e: Event) => {
+          if (!e.endTime) return true;
 
-            const monthIndex = [
-              "January",
-              "February",
-              "March",
-              "April",
-              "May",
-              "June",
-              "July",
-              "August",
-              "September",
-              "October",
-              "November",
-              "December",
-            ].indexOf(e.month);
-            const eventDate = new Date(2026, monthIndex, e.day);
+          const monthIndex = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December",
+          ].indexOf(e.month);
+          
+          const eventDate = new Date(2026, monthIndex, e.day);
 
-            const parseTime = (timeStr: string) => {
-              const [time, period] = timeStr.split(/(AM|PM)/);
-              const [hours, minutes] = time.split(":").map(Number);
-              let hour = hours;
-              if (period === "PM" && hour !== 12) hour += 12;
-              if (period === "AM" && hour === 12) hour = 0;
-              eventDate.setHours(hour, minutes, 0);
-              return eventDate;
-            };
+          const parseTime = (timeStr: string) => {
+            const match = timeStr.match(/(\d+):(\d+)(AM|PM)/);
+            if (!match) return eventDate;
+            
+            let [_, hours, minutes, period] = match;
+            let hour = parseInt(hours);
+            if (period === "PM" && hour !== 12) hour += 12;
+            if (period === "AM" && hour === 12) hour = 0;
+            
+            const d = new Date(eventDate);
+            d.setHours(hour, parseInt(minutes), 0);
+            return d;
+          };
 
-            const endDateTime = parseTime(e.endTime);
-            return endDateTime > new Date();
-          });
-          setEvents(filteredEvents);
-        }
+          const endDateTime = parseTime(e.endTime);
+          return endDateTime > new Date();
+        });
+        setEvents(filteredEvents);
       }
     } catch (error) {
       console.log(error);

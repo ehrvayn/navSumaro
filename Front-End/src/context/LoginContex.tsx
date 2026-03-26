@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 import { usePage } from "./PageContex";
 import { useCurrentUser } from "./CurrentUserContex";
+import api from "../lib/api";
 
 interface LoginContextType {
   email: string;
@@ -42,13 +43,9 @@ export const LoginProvider: React.FC<{ children: React.ReactNode }> = ({
     setLoginError("");
     setLoading(true);
     try {
-      const response = await fetch("https://navsumaro.onrender.com/user/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await api.post("/user/login", { email, password });
 
-      const data = await response.json();
+      const data = response.data;
 
       if (data.success) {
         localStorage.setItem("token", data.token);

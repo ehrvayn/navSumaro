@@ -1,9 +1,15 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useMemo,
+} from "react";
 import { Group, GroupMember } from "../types";
 import { useCurrentUser } from "./CurrentUserContex";
 import { io } from "socket.io-client";
 
-const socket = io("https://navsumaro.onrender.com");
+const apiUrl = import.meta.env.VITE_API_URL;
 
 interface GroupContextType {
   groups: Group[];
@@ -35,6 +41,8 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
   const [activeTab, setActiveTab] = useState("Posts");
   const { currentUser } = useCurrentUser();
 
+  const socket = useMemo(() => io(apiUrl), []);
+
   const activeGroup = groups.find((g) => g.id === activeGroupId) ?? null;
   const members = activeGroup?.members ?? [];
   const onlineMembers = members.filter((m) => m.user.isOnline);
@@ -56,29 +64,32 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
         prev.map((g) => ({
           ...g,
           members: g.members.map((m) =>
-            m.user.id === userId
-              ? { ...m, user: { ...m.user, isOnline } }
-              : m,
+            m.user.id === userId ? { ...m, user: { ...m.user, isOnline } } : m,
           ),
         })),
       );
     };
 
     socket.on("user_status_change", handleStatusChange);
-    return () => {socket.off("user_status_change", handleStatusChange)};
-  }, []);
+    return () => {
+      socket.off("user_status_change", handleStatusChange);
+    };
+  }, [socket]);
 
   const getAllGroup = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch("https://navsumaro.onrender.com/group/retrieveAll", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${apiUrl}/group/retrieveAll`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
       if (response.ok) {
         const data = await response.json();
         setGroups(data);
@@ -96,8 +107,8 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!token) return;
     const targetId = groupId ?? activeGroupId;
     const url = val
-      ? `https://navsumaro.onrender.com/group/join/${targetId}`
-      : `https://navsumaro.onrender.com/group/leave/${targetId}`;
+      ? `${apiUrl}/group/join/${targetId}`
+      : `${apiUrl}/group/leave/${targetId}`;
     const method = val ? "POST" : "DELETE";
     try {
       const response = await fetch(url, {
@@ -147,14 +158,17 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch("https://navsumaro.onrender.com/group/create", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${apiUrl}/group/create`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
         },
-        body: JSON.stringify(data),
-      });
+      );
       if (response.ok) {
         const result = await response.json();
         await getAllGroup();
@@ -171,7 +185,7 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!token) return;
     try {
       const response = await fetch(
-        `https://navsumaro.onrender.com/group/kick/${groupId}/${memberId}`,
+        `${apiUrl}/group/kick/${groupId}/${memberId}`,
         {
           method: "DELETE",
           headers: {
@@ -184,7 +198,10 @@ export const GroupProvider: React.FC<{ children: React.ReactNode }> = ({
         setGroups((prev) =>
           prev.map((g) =>
             g.id === groupId
-              ? { ...g, members: g.members.filter((m) => m.user.id !== memberId) }
+              ? {
+                  ...g,
+                  members: g.members.filter((m) => m.user.id !== memberId),
+                }
               : g,
           ),
         );

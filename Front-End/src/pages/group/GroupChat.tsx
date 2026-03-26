@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Avatar } from "../../components/ui";
+import api from "../../lib/api";
 import { useCurrentUser } from "../../context/CurrentUserContex";
 import { useMessages } from "../../context/MessageContext";
 import { SendHorizontal } from "lucide-react";
 import { GroupConversation, GroupMessage } from "../../types";
+
 
 interface GroupChatProps {
   conversation: GroupConversation;
@@ -35,7 +37,6 @@ const GroupChat: React.FC<GroupChatProps> = ({ conversation }) => {
         };
       });
       setLocalMessages(converted);
-    } else {
     }
   }, [conversation.messages]);
 
@@ -47,23 +48,14 @@ const GroupChat: React.FC<GroupChatProps> = ({ conversation }) => {
     if (!message.trim() || !currentUser) return;
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      const response = await fetch("https://navsumaro.onrender.com/group/send", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          groupId: conversation.id,
-          text: message,
-        }),
+      const response = await api.post("/group/send", {
+        groupId: conversation.id,
+        text: message,
       });
 
-      if (response.ok) {
-        const result = await response.json();
+      const result = response.data;
+      
+      if (result.success) {
         socket.emit("send_group_message", {
           groupId: conversation.id,
           ...result.data,
@@ -96,10 +88,10 @@ const GroupChat: React.FC<GroupChatProps> = ({ conversation }) => {
               >
                 {!isMe && (
                   <div className=" self-center">
-                  <Avatar
-                    initials={`${msg.firstname?.[0] || ""}${msg.lastname?.[0] || ""}`}
-                    size="xs"
-                  />
+                    <Avatar
+                      initials={`${msg.firstname?.[0] || ""}${msg.lastname?.[0] || ""}`}
+                      size="xs"
+                    />
                   </div>
                 )}
                 <div

@@ -9,6 +9,7 @@ import GroupLeftSidebar from "../../components/layout/sidebar/GroupLeftSidebar";
 import Feed from "../../components/feed/Feed";
 import GroupMembers from "./GroupMembers";
 import { useMessages } from "../../context/MessageContext";
+import api from "../../lib/api";
 import DiscoverGroups from "./DiscoverGroup";
 import { FaLock } from "react-icons/fa6";
 import { BsGlobeAmericasFill } from "react-icons/bs";
@@ -51,9 +52,7 @@ const GroupStudyPage: React.FC = () => {
       if (newMessage.groupId === activeGroupId) {
         setGroupMessages((prev) => {
           const exists = prev.some((msg) => msg.id === newMessage.id);
-          if (exists) {
-            return prev;
-          }
+          if (exists) return prev;
           return [...prev, newMessage];
         });
       } else {
@@ -72,23 +71,12 @@ const GroupStudyPage: React.FC = () => {
 
   useEffect(() => {
     const fetchMessages = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
+      if (!activeGroupId) return;
       try {
-        const response = await fetch(
-          `https://navsumaro.onrender.com/group/messages/get/${activeGroupId}`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          },
-        );
+        const response = await api.get(`/group/messages/get/${activeGroupId}`);
+        const data = response.data;
 
-        if (response.ok) {
-          const data = await response.json();
+        if (data.success) {
           setGroupConversations((prev) => [
             ...prev.filter((c) => c.id !== activeGroupId),
             {
@@ -115,7 +103,7 @@ const GroupStudyPage: React.FC = () => {
     if (activeGroupId) {
       fetchMessages();
     }
-  }, [activeGroupId, activeGroup]);
+  }, [activeGroupId, activeGroup, setGroupConversations]);
 
   const handleTagClick = (tag: string) =>
     setActiveTag((prev) => (prev === tag || tag === "" ? null : tag));
@@ -135,7 +123,7 @@ const GroupStudyPage: React.FC = () => {
     if (activeGroupId) {
       getGroupPosts(activeGroupId);
     }
-  }, [activeGroupId]);
+  }, [activeGroupId, getGroupPosts]);
 
   useEffect(() => {
     if (activeTab === "Chats" && activeGroupId) {
@@ -149,20 +137,10 @@ const GroupStudyPage: React.FC = () => {
 
   const fetchGroupMessages = async (groupId: string) => {
     setLoadingMessages(true);
-    const token = localStorage.getItem("token");
-    if (!token) return;
     try {
-      const response = await fetch(
-        `https://navsumaro.onrender.com/group/messages/get/${groupId}`,
-        {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setGroupMessages(data.data ?? []);
-      }
+      const response = await api.get(`/group/messages/get/${groupId}`);
+      const data = response.data;
+      setGroupMessages(data.success ? data.data : []);
     } catch (error) {
       console.error("Failed to fetch group messages:", error);
     } finally {
@@ -197,8 +175,8 @@ const GroupStudyPage: React.FC = () => {
             >
               <Menu size={15} />
             </button>
-            <span className="text-sm flex gap-1 items-center font-bold text-slate-300  truncate">
-              <Users size={15}/> Groups
+            <span className="text-sm flex gap-1 items-center font-bold text-slate-300 truncate">
+              <Users size={15} /> Groups
             </span>
             <button
               onClick={() => setRightOpen(true)}
@@ -224,7 +202,7 @@ const GroupStudyPage: React.FC = () => {
                         <BsGlobeAmericasFill />
                       ) : (
                         <div className="text-[13px] md:text-[15px]">
-                        <FaLock />
+                          <FaLock />
                         </div>
                       )}
                     </div>
@@ -272,7 +250,7 @@ const GroupStudyPage: React.FC = () => {
                   tab === "Chats"
                     ? Object.values(groupUnread).reduce(
                         (sum, count) => sum + count,
-                        0,
+                        0
                       )
                     : 0;
 
@@ -280,7 +258,11 @@ const GroupStudyPage: React.FC = () => {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`px-4 py-2 text-[11px] md:text-[14px] border-b-2 transition-all relative ${activeTab === tab ? "border-orange-500 text-orange-400 font-bold" : "border-transparent text-slate-500"}`}
+                    className={`px-4 py-2 text-[11px] md:text-[14px] border-b-2 transition-all relative ${
+                      activeTab === tab
+                        ? "border-orange-500 text-orange-400 font-bold"
+                        : "border-transparent text-slate-500"
+                    }`}
                   >
                     {tab}
                     {totalUnread > 0 && (

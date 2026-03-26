@@ -1,15 +1,13 @@
 import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
   GraduationCap,
   Building2,
 } from "lucide-react";
 import { useState } from "react";
 import { useLogin } from "../../context/LoginContex";
+import api from "../../lib/api";
 import RegisterStudentPage from "./RegisterStudentPage";
 import RegisterOrgPage from "./RegisterOrgPage";
+
 
 function RegisterPage() {
   const [accountType, setAccountType] = useState("");
@@ -18,19 +16,13 @@ function RegisterPage() {
 
   const handleStudentRegister = async (data: any) => {
     try {
-      const response = await fetch("https://navsumaro.onrender.com/user/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (response.ok) {
-        const result = await response.json();
-        if (!result.success) {
-          alert(result.message);
-          return;
-        }
-        setRegistered(true);
+      const response = await api.post("/user/register", data);
+      const result = response.data;
+      if (!result.success) {
+        alert(result.message);
+        return;
       }
+      setRegistered(true);
     } catch (error) {
       console.error("Register error", error);
     }

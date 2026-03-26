@@ -11,6 +11,7 @@ import {
 import { IoReturnDownBackSharp } from "react-icons/io5";
 import { useState } from "react";
 import { useLogin } from "../../context/LoginContex";
+import api from "../../lib/api";
 
 interface RegisterStudentPageProps {
   onBack: () => void;
@@ -85,16 +86,10 @@ function RegisterStudentPage({
     };
 
     try {
-      const response = await fetch("https://navsumaro.onrender.com/user/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const response = await api.post("/user/register", data);
 
-      const result = await response.json();
-
-      if (!result.success) {
-        alert(result.message || "Registration failed");
+      if (!response.data.success) {
+        alert(response.data.message || "Registration failed");
         return;
       }
       onRegisterSuccess();

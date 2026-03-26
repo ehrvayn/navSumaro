@@ -26,7 +26,6 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose }) => {
     likeComment,
     handleVote,
     fetchComments,
-    postUserProfileId,
     setPostUserProfileId,
     getUserData,
     setSelectedPostId,

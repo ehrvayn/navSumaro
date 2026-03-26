@@ -20,6 +20,8 @@ import { jwtDecode } from "jwt-decode";
 import { Avatar } from "../components/ui";
 import { FaCheckCircle } from "react-icons/fa";
 import { ChevronDown } from "lucide-react";
+import api from "../lib/api";
+
 
 interface JWTPayload {
   id: string;
@@ -116,36 +118,18 @@ function MyProfilePage() {
       let response;
 
       if (isOrganization) {
-        response = await fetch(`https://navsumaro.onrender.com/org/update`, {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            [field]: value,
-          }),
+        response = await api.put(`/org/update`, {
+          [field]: value,
         });
       } else {
         const decoded = jwtDecode<JWTPayload>(token);
-        response = await fetch(
-          `https://navsumaro.onrender.com/user/updateUser/${decoded.id}`,
-          {
-            method: "PUT",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              type: field,
-              value1: value,
-            }),
-          },
-        );
+        response = await api.put(`/user/updateUser/${decoded.id}`, {
+          type: field,
+          value1: value,
+        });
       }
 
-      if (response.ok) {
-        const data = await response.json();
+      if (response.data || response.status === 200) {
         updateCurrentUser({ [field]: value });
         setEditing(null);
         setConfirmPassword("");

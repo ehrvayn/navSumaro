@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { Post, Comment } from "../types";
 import { useCurrentUser } from "./CurrentUserContex";
+import api from "../lib/api";
 
 interface Badge {
   id: string;
@@ -135,53 +136,37 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     avatar: "",
   });
 
-  useEffect(() => {
-    getAllPost();
-  }, [currentUser]);
-
   const getAllPost = async (pageNum = 1) => {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      if (pageNum === 1) {
-      } else {
+      if (pageNum !== 1) {
         setLoadingMore(true);
       }
-      const response = await fetch(
-        `https://navsumaro.onrender.com/post/retrieveAll?page=${pageNum}&limit=20`,
-        {
-          method: "GET",
-          headers: {
-            authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        },
+      const response = await api.get("/post/retrieveAll", { params: { page: pageNum, limit: 20 } });
+      const data = response.data;
+      const normalized = data.map((p: any) => ({
+        ...p,
+        upVote: p.upVote === true,
+        downVote: p.downVote === true,
+      }));
+
+      if (normalized.length < 20) setHasMore(false);
+      setPosts((prev) =>
+        pageNum === 1 ? normalized : [...prev, ...normalized],
       );
-      if (response.ok) {
-        const data = await response.json();
-        const normalized = data.map((p: any) => ({
-          ...p,
-          upVote: p.upVote === true,
-          downVote: p.downVote === true,
-        }));
 
-        if (normalized.length < 20) setHasMore(false);
-        setPosts((prev) =>
-          pageNum === 1 ? normalized : [...prev, ...normalized],
-        );
-
-        const tagCount: Record<string, number> = {};
-        data.forEach((post: any) => {
-          (post.tags || []).forEach((tag: string) => {
-            tagCount[tag] = (tagCount[tag] || 0) + 1;
-          });
+      const tagCount: Record<string, number> = {};
+      data.forEach((post: any) => {
+        (post.tags || []).forEach((tag: string) => {
+          tagCount[tag] = (tagCount[tag] || 0) + 1;
         });
-        const topTags = Object.entries(tagCount)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 10)
-          .map(([tag]) => tag);
-        setPopularTags(topTags);
-      }
+      });
+      const topTags = Object.entries(tagCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([tag]) => tag);
+      setPopularTags(topTags);
     } catch (error) {
       console.log(error);
     } finally {
@@ -202,7 +187,6 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const normalizeComment = (c: any): Comment => {
     const isOrg = c.author.accountType === "organization";
-
     return {
       id: c.id,
       postId: c.post_id,
@@ -230,23 +214,12 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch(
-        `https://navsumaro.onrender.com/post/comment/retrieve/${postId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setPostComments((prev) => ({
-          ...prev,
-          [postId]: data.map(normalizeComment),
-        }));
-      }
+      const response = await api.get(`/post/comment/retrieve/${postId}`);
+      const data = response.data;
+      setPostComments((prev) => ({
+        ...prev,
+        [postId]: data.map(normalizeComment),
+      }));
     } catch (error) {
       console.log(error);
     }
@@ -269,31 +242,19 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch(
-        `https://navsumaro.onrender.com/post/comment/create`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ text, postId, parentId }),
-        },
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setPostComments((prev) => ({
-          ...prev,
-          [postId]: [normalizeComment(data.comment), ...(prev[postId] ?? [])],
-        }));
+      const response = await api.post("/post/comment/create", { text, postId, parentId });
+      const data = response.data;
+      setPostComments((prev) => ({
+        ...prev,
+        [postId]: [normalizeComment(data.comment), ...(prev[postId] ?? [])],
+      }));
 
-        const post = findPostById(postId);
-        if (post) {
-          updatePostInState({
-            ...post,
-            comments: post.comments + 1,
-          });
-        }
+      const post = findPostById(postId);
+      if (post) {
+        updatePostInState({
+          ...post,
+          comments: post.comments + 1,
+        });
       }
     } catch (error) {
       console.log(error);
@@ -304,28 +265,16 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch(
-        `https://navsumaro.onrender.com/post/comment/like/${commentId}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ postId }),
-        },
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setPostComments((prev) => ({
-          ...prev,
-          [postId]: (prev[postId] ?? []).map((c) =>
-            c.id === commentId
-              ? { ...c, liked: data.comment.liked, likes: data.comment.likes }
-              : c,
-          ),
-        }));
-      }
+      const response = await api.post(`/post/comment/like/${commentId}`, { postId });
+      const data = response.data;
+      setPostComments((prev) => ({
+        ...prev,
+        [postId]: (prev[postId] ?? []).map((c) =>
+          c.id === commentId
+            ? { ...c, liked: data.comment.liked, likes: data.comment.likes }
+            : c,
+        ),
+      }));
     } catch (error) {
       console.log(error);
     }
@@ -335,38 +284,29 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch("https://navsumaro.onrender.com/post/create", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: data.title,
-          body: data.body,
-          tags: data.tags,
-          type: data.type,
-          groupId: data.groupId,
-        }),
+      const response = await api.post("/post/create", {
+        title: data.title,
+        body: data.body,
+        tags: data.tags,
+        type: data.type,
+        groupId: data.groupId,
       });
-      if (response.ok) {
-        const result = await response.json();
-        const newPost = {
-          ...result.post,
-          author: currentUser,
-          upVote: false,
-          downVote: false,
-        };
-        if (data.groupId) {
-          setGroupPosts((prev) => ({
-            ...prev,
-            [data.groupId]: [newPost, ...(prev[data.groupId] ?? [])],
-          }));
-        } else {
-          setPosts((prev) => [newPost, ...prev]);
-        }
-        setShowCreatePost(false);
+      const result = response.data;
+      const newPost = {
+        ...result.post,
+        author: currentUser,
+        upVote: false,
+        downVote: false,
+      };
+      if (data.groupId) {
+        setGroupPosts((prev) => ({
+          ...prev,
+          [data.groupId]: [newPost, ...(prev[data.groupId] ?? [])],
+        }));
+      } else {
+        setPosts((prev) => [newPost, ...prev]);
       }
+      setShowCreatePost(false);
     } catch (error) {
       console.log(error);
     }
@@ -376,15 +316,8 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch(`https://navsumaro.onrender.com/post/delete/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await response.json();
-      if (response.ok) {
+      const response = await api.delete(`/post/delete/${id}`);
+      if (response.status === 200) {
         setPosts((prev) => prev.filter((p) => p.id !== id));
         setGroupPosts((prev) => {
           const updated = { ...prev };
@@ -395,12 +328,10 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
         });
         setShowDeletePost(false);
         setDeletedPostId(null);
-      } else {
-        alert(data.message || "Failed to delete post");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Something went wrong");
+      alert(error.response?.data?.message || "Something went wrong");
     }
   };
 
@@ -471,38 +402,27 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     });
 
     try {
-      const response = await fetch(`https://navsumaro.onrender.com/post/vote/${id}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ type }),
+      const response = await api.post(`/post/vote/${id}`, { type });
+      const data = response.data;
+      const reconcile = (prev: Post[]) =>
+        prev.map((p) =>
+          p.id === id
+            ? {
+                ...p,
+                votes: data.post.votes,
+                upVote: data.post.userVote === "up",
+                downVote: data.post.userVote === "down",
+              }
+            : p,
+        );
+      setPosts(reconcile);
+      setGroupPosts((prev) => {
+        const updated = { ...prev };
+        for (const key in updated) {
+          updated[key] = reconcile(updated[key]);
+        }
+        return updated;
       });
-      if (response.ok) {
-        const data = await response.json();
-        const reconcile = (prev: Post[]) =>
-          prev.map((p) =>
-            p.id === id
-              ? {
-                  ...p,
-                  votes: data.post.votes,
-                  upVote: data.post.userVote === "up",
-                  downVote: data.post.userVote === "down",
-                }
-              : p,
-          );
-        setPosts(reconcile);
-        setGroupPosts((prev) => {
-          const updated = { ...prev };
-          for (const key in updated) {
-            updated[key] = reconcile(updated[key]);
-          }
-          return updated;
-        });
-      } else {
-        await getAllPost();
-      }
     } catch (error) {
       console.log(error);
       await getAllPost();
@@ -534,25 +454,14 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch(
-        `https://navsumaro.onrender.com/post/retrieveAll?groupId=${groupId}`,
-        {
-          method: "GET",
-          headers: {
-            authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-      if (response.ok) {
-        const data = await response.json();
-        const normalized = data.map((p: any) => ({
-          ...p,
-          upVote: p.upVote === true,
-          downVote: p.downVote === true,
-        }));
-        setGroupPosts((prev) => ({ ...prev, [groupId]: normalized }));
-      }
+      const response = await api.get("/post/retrieveAll", { params: { groupId } });
+      const data = response.data;
+      const normalized = data.map((p: any) => ({
+        ...p,
+        upVote: p.upVote === true,
+        downVote: p.downVote === true,
+      }));
+      setGroupPosts((prev) => ({ ...prev, [groupId]: normalized }));
     } catch (error) {
       console.log(error);
     }
@@ -561,65 +470,44 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
   const getUserData = async (userId: string) => {
     const token = localStorage.getItem("token");
     if (!token) return;
-
     try {
-      const decoded = JSON.parse(atob(token.split(".")[1]));
-      const currentUserAccountType = decoded.accountType;
-
-      let endpoint = `https://navsumaro.onrender.com/user/retrieve/${userId}`;
-
-      let response = await fetch(endpoint, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        endpoint = `https://navsumaro.onrender.com/org/retrieve/${userId}`;
-        response = await fetch(endpoint, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+      let response;
+      try {
+        response = await api.get(`/user/retrieve/${userId}`);
+      } catch (err) {
+        response = await api.get(`/org/retrieve/${userId}`);
       }
+      
+      const data = response.data;
+      const userData = data.data || data;
+      const isOrgProfile = userData.organizationType !== undefined;
 
-      if (response.ok) {
-        const data = await response.json();
-        const userData = data.data || data;
-
-        const isOrgProfile = userData.organizationType !== undefined;
-
-        if (isOrgProfile) {
-          setDraft({
-            id: userData.id,
-            name: userData.name,
-            university: userData.university,
-            organizationType: userData.organizationType,
-            isVerified: userData.isVerified,
-            reputation: 0,
-            badges: [],
-            avatar: userData.avatar,
-            description: userData.description,
-          });
-        } else {
-          setDraft({
-            id: userData.id,
-            firstname: userData.firstname,
-            lastname: userData.lastname,
-            university: userData.university,
-            program: userData.program,
-            yearLevel: userData.yearLevel,
-            isVerified: userData.isVerified,
-            reputation: userData.reputation,
-            badges: userData.badges,
-            avatar: userData.avatar,
-            description: userData.description,
-          });
-        }
+      if (isOrgProfile) {
+        setDraft({
+          id: userData.id,
+          name: userData.name,
+          university: userData.university,
+          organizationType: userData.organizationType,
+          isVerified: userData.isVerified,
+          reputation: 0,
+          badges: [],
+          avatar: userData.avatar,
+          description: userData.description,
+        });
+      } else {
+        setDraft({
+          id: userData.id,
+          firstname: userData.firstname,
+          lastname: userData.lastname,
+          university: userData.university,
+          program: userData.program,
+          yearLevel: userData.yearLevel,
+          isVerified: userData.isVerified,
+          reputation: userData.reputation,
+          badges: userData.badges,
+          avatar: userData.avatar,
+          description: userData.description,
+        });
       }
     } catch (error) {
       console.log(error);
