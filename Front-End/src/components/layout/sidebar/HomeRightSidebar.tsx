@@ -1,5 +1,5 @@
 import React from "react";
-import { trendingTopics } from "../../../data/mockData";
+import { trendingTopics } from "../../../data/mockTrendingTopics";
 import { Divider, SectionHeader } from "../../ui";
 import { X } from "lucide-react";
 import { usePage } from "../../../context/PageContex";

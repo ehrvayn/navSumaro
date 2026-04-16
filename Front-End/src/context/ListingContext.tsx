@@ -42,6 +42,8 @@ export const ListingProvider: React.FC<{ children: React.ReactNode }> = ({
     listings.find((l) => l.id === selectedListingId) || null;
 
   const fetchListings = async (pageNum: number) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
     try {
       setLoading(true);
       const res = await api.get(`/listing/all?page=${pageNum}&limit=20`);

@@ -23,6 +23,8 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const getEvents = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
     try {
       const response = await api.get("/org/event/retrieveAll");
       const data = response.data;
@@ -32,21 +34,31 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
           if (!e.endTime) return true;
 
           const monthIndex = [
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December",
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
           ].indexOf(e.month);
-          
+
           const eventDate = new Date(2026, monthIndex, e.day);
 
           const parseTime = (timeStr: string) => {
             const match = timeStr.match(/(\d+):(\d+)(AM|PM)/);
             if (!match) return eventDate;
-            
+
             let [_, hours, minutes, period] = match;
             let hour = parseInt(hours);
             if (period === "PM" && hour !== 12) hour += 12;
             if (period === "AM" && hour === 12) hour = 0;
-            
+
             const d = new Date(eventDate);
             d.setHours(hour, parseInt(minutes), 0);
             return d;
