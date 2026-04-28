@@ -51,7 +51,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
           const eventDate = new Date(2026, monthIndex, e.day);
 
           const parseTime = (timeStr: string) => {
-            const match = timeStr.match(/(\d+):(\d+)(AM|PM)/);
+            const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
             if (!match) return eventDate;
 
             let [_, hours, minutes, period] = match;
