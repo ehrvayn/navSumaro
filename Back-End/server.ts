@@ -51,6 +51,10 @@ app.get("/", (req: Request, res: Response) => {
   res.json({ message: "NavSumaro Backend - localhost running!" });
 });
 
+app.get("/health", (req: Request, res: Response) => {
+  res.json({ status: "Server is Running" });
+});
+
 app.use("*", (req: Request, res: Response) => {
   res.status(404).json({ error: "Route not found" });
 });
