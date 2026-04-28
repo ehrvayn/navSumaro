@@ -15,7 +15,6 @@ import {
   MessageSquare,
   Paperclip,
   Beaker,
-  Eye,
   EllipsisVertical,
   Pencil,
   Trash2,
@@ -77,7 +76,10 @@ const PostCard: React.FC<PostCardProps> = ({
     if (post.author.accountType === "organization") {
       return (post.author as any).name?.[0] ?? "";
     }
-    return ((post.author as User).firstname?.[0] ?? "") + ((post.author as User).lastname?.[0] ?? "");
+    return (
+      ((post.author as User).firstname?.[0] ?? "") +
+      ((post.author as User).lastname?.[0] ?? "")
+    );
   };
 
   return (
@@ -204,10 +206,6 @@ const PostCard: React.FC<PostCardProps> = ({
         </div>
 
         <div className="flex items-center sm:justify-center border-t sm:border-0 border-gray-700 px-10 py-2 sm:py-0 sm:px-0 sm:w-auto justify-between w-full gap-5">
-          <div className="flex items-center gap-1 text-[11px] text-text-muted">
-            <Eye size={20} />
-            <span>{post.views}</span>
-          </div>
           <div className="flex items-center gap-1 text-[11px] text-text-muted">
             <LiaCommentDots size={18} />
             <span>{post.comments}</span>

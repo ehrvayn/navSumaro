@@ -54,7 +54,6 @@ export const isStudent = (account: AccountOwner): account is User => {
   return account.accountType === "student";
 };
 
-
 export interface Post {
   id: string;
   groupId?: string;

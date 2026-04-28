@@ -9,7 +9,7 @@ import { IoArrowRedoSharp } from "react-icons/io5";
 import { LiaCommentDots } from "react-icons/lia";
 import { FaCheckCircle } from "react-icons/fa";
 import { usePage } from "../../context/PageContex";
-import { Eye, ArrowRight, SendHorizontal } from "lucide-react";
+import { ArrowRight, SendHorizontal } from "lucide-react";
 
 interface PostDetailModalProps {
   post: Post;
@@ -290,13 +290,6 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose }) => {
 
             <div className="flex items-center justify-between sm:justify-end gap-5 md:gap-4 px-2 py-2 sm:p-0 bg-base-hover sm:bg-transparent rounded-xl">
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-[11px] text-text-muted font-medium">
-                  <Eye
-                    size={15}
-                    className="sm:w-[18px] sm:h-[18px] md:w-5 md:h-5"
-                  />
-                  <span>{post.views}</span>
-                </div>
                 <div className="flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-[11px] text-text-muted font-medium">
                   <LiaCommentDots
                     size={14}

@@ -13,8 +13,8 @@ interface LeftSidebarProps {
 }
 
 const filters = [
-  { id: "newest", label: "Newest & Recent", icon: "✨", sub: "" },
-  { id: "popular", label: "Popular Today", icon: "🔥", sub: "" },
+  { id: "newest", label: "Newest & Recent", sub: "" },
+  { id: "popular", label: "Popular Today", sub: "" },
 ];
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({
@@ -42,10 +42,10 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 : "border-transparent hover:bg-base-hover"
             }`}
           >
-            <span className="text-base shrink-0">{f.icon}</span>
             <div className="flex-1 min-w-0">
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
               <div
-                className={`flex items-center gap-1.5 text-xs font-semibold ${
+                className={`flex items-center pt-1 justify-center *:gap-1.5 text-xs font-semibold ${
                   activeFilter === f.id ? "text-brand" : "text-text-secondary"
                 }`}
               >
@@ -111,7 +111,10 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
               10% off for students. Visit us near campus!
             </p>
 
-            <button className="w-full bg-purple-500 hover:bg-purple-600 text-white text-[11px] font-bold py-1.5 rounded-md transition-all">
+            <button
+              onClick={() => alert("This feature is under Development!")}
+              className="w-full bg-purple-500 hover:bg-purple-600 text-white text-[11px] font-bold py-1.5 rounded-md transition-all"
+            >
               Learn More
             </button>
           </div>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Logo from "../assets/img/Logo.png";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
 import { useLogin } from "../context/LoginContex";
 import RegisterPage from "./register/RegisterPage";
 
@@ -15,6 +15,8 @@ function LoginPage() {
     isRegister,
     setIsRegister,
     loading,
+    loginError,
+    setLoginError,
   } = useLogin();
 
   return (
@@ -22,7 +24,7 @@ function LoginPage() {
       className={`min-h-screen bg-base overflow-hidden ${isRegister ? "flex items-start justify-center py-8 px-4" : "lg:grid flex lg:grid-cols-[1.5fr_1fr]"}`}
     >
       {!isRegister && (
-        <div className="hidden lg:flex flex-col justify-between p-12 bg-base-elevated border-l border-border relative overflow-hidden">
+        <div className="hidden lg:flex flex-col justify-between p-12 bg-[#06111a] border-l border-border relative overflow-hidden">
           <img src={Logo} className="w-[160px] relative z-10" />
           <div className="flex flex-col gap-8 relative z-10">
             <div className="flex flex-col gap-3">
@@ -35,7 +37,7 @@ function LoginPage() {
                 Your entire campus.
               </h2>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {[
                 {
                   emoji: "🎓",
@@ -60,7 +62,7 @@ function LoginPage() {
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="bg-base/50 border border-orange-500/50 items-center rounded-md p-3.5 flex gap-1.5"
+                  className="bg-base/50 border-b border-l border-orange-500/50 items-center rounded-sm p-3.5 flex gap-1.5"
                 >
                   <span className="text-[35px]">{item.emoji}</span>
                   <div className="flex flex-col">
@@ -112,11 +114,24 @@ function LoginPage() {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (loginError) setLoginError("");
+                    }}
                     placeholder="yourname@ncf.edu.ph"
-                    className="w-full bg-base border border-border rounded-md pl-9 pr-4 py-2.5 text-[13px] text-text-primary outline-none focus:border-brand transition-colors placeholder:text-text-muted/50"
+                    className={`w-full bg-base border rounded-md pl-9 pr-4 py-2.5 text-[13px] text-text-primary outline-none transition-colors placeholder:text-text-muted/50 ${
+                      loginError
+                        ? "border-red-500 focus:border-red-500"
+                        : "border-border focus:border-brand"
+                    }`}
                   />
                 </div>
+                {loginError === "Email doesn't Exist!" && (
+                  <div className="flex items-center gap-1.5 mt-1 text-red-400">
+                    <AlertCircle size={12} />
+                    <p className="text-[11px] font-medium">{loginError}</p>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -130,9 +145,16 @@ function LoginPage() {
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (loginError) setLoginError("");
+                    }}
                     placeholder="••••••••"
-                    className="w-full bg-base border border-border rounded-md pl-9 pr-10 py-2.5 text-[13px] text-text-primary outline-none focus:border-brand transition-colors placeholder:text-text-muted/50"
+                    className={`w-full bg-base border rounded-md pl-9 pr-10 py-2.5 text-[13px] text-text-primary outline-none transition-colors placeholder:text-text-muted/50 ${
+                      loginError
+                        ? "border-red-500 focus:border-red-500"
+                        : "border-border focus:border-brand"
+                    }`}
                   />
                   <button
                     onClick={() => setShowPassword((p) => !p)}
@@ -141,6 +163,13 @@ function LoginPage() {
                     {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
+
+                {loginError === "Wrong password!" && (
+                  <div className="flex items-center gap-1.5 mt-1 text-red-400">
+                    <AlertCircle size={12} />
+                    <p className="text-[11px] font-medium">{loginError}</p>
+                  </div>
+                )}
               </div>
             </div>
 

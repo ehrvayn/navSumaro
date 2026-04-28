@@ -14,7 +14,7 @@ const Login = async (email: string, password: string) => {
       const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
       if (!isPasswordCorrect) {
-        return { success: false, message: "Invalid credentials" };
+        return { success: false, message: "Wrong password!" };
       }
 
       const token = jwt.sign(
@@ -33,7 +33,7 @@ const Login = async (email: string, password: string) => {
       );
 
       return { success: true, message: "Login Successful!", token };
-    }
+    } 
 
     const { query: orgSql, values: orgValues } = orgQuery.login(email);
     const orgResult = await query(orgSql, orgValues);
@@ -43,7 +43,7 @@ const Login = async (email: string, password: string) => {
       const isPasswordCorrect = await bcrypt.compare(password, org.password);
 
       if (!isPasswordCorrect) {
-        return { success: false, message: "Invalid credentials" };
+        return { success: false, message: "Wrong password!" };
       }
 
       const token = jwt.sign(
@@ -63,7 +63,7 @@ const Login = async (email: string, password: string) => {
       return { success: true, message: "Login Successful!", token };
     }
 
-    return { success: false, message: "Invalid credentials" };
+    return { success: false, message: "Email doesn't Exist!" };
   } catch (err) {
     console.error("Login error:", err);
     return { success: false, message: "Something went wrong" };

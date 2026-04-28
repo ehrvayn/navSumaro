@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { IoReturnDownBackSharp } from "react-icons/io5";
 import { useState } from "react";
-import { useLogin } from "../../context/LoginContex";
 import api from "../../lib/api";
 
 interface RegisterStudentPageProps {
@@ -21,7 +20,6 @@ interface RegisterStudentPageProps {
 
 function RegisterStudentPage({
   onBack,
-  onRegister,
   onRegisterSuccess,
 }: RegisterStudentPageProps) {
   const [showPassword, setShowPassword] = useState(false);
@@ -36,7 +34,16 @@ function RegisterStudentPage({
   const [yearLevel, setYearLevel] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const { setIsRegister } = useLogin();
+  const validEmails = [
+    ".edu.ph",
+    ".ac.uk",
+    ".edu",
+    ".edu.au",
+    ".ac.nz",
+    ".edu.sg",
+    ".ac.id",
+    ".gbox.ncf.edu.ph",
+  ];
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -46,6 +53,8 @@ function RegisterStudentPage({
       newErrors.email = "Email is required";
     } else if (!email.includes("@")) {
       newErrors.email = "Must be a valid email address";
+    } else if (!validEmails.some((suffix) => email.endsWith(suffix))) {
+      newErrors.email = "email is not valid";
     }
     if (!password) {
       newErrors.password = "Password is required";

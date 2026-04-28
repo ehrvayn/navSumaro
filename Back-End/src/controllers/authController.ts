@@ -14,18 +14,33 @@ export const register = async (req: Request, res: Response) => {
     yearLevel,
   } = req.body;
 
+  const validEmails = [
+    ".edu.ph",
+    ".ac.uk",
+    ".edu",
+    ".edu.au",
+    ".ac.nz",
+    ".edu.sg",
+    ".ac.id",
+    ".gbox.ncf.edu.ph",
+  ];
+
   if (!email || !password || !firstname || !lastname || !accountType) {
     return res.status(400).json({
       success: false,
-      message: "Missing required fields: email, password, firstname, lastname, and accountType are mandatory.",
+      message:
+        "Missing required fields: email, password, firstname, lastname, and accountType are mandatory.",
     });
   }
 
-  const allowedDomains = ["@ncf.edu.ph", "@gbox.ncf.edu.ph"];
-  const isInstitutionalEmail = allowedDomains.some((domain) => email.endsWith(domain));
-  const isVerified = isInstitutionalEmail;
+  if (!validEmails.some((suffix) => email.endsWith(suffix))) {
+    return res.status(400).json({
+      success: false,
+      message: "Email is Invalid!",
+    });
+  }
 
-  const result = await RegisterUser({ ...req.body, isVerified });
+  const result = await RegisterUser(req.body);
 
   if (!result.success) {
     return res.status(400).json(result);

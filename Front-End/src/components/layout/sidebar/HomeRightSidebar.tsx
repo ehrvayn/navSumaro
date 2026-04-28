@@ -1,6 +1,7 @@
 import React from "react";
 import { trendingTopics } from "../../../data/mockTrendingTopics";
 import { Divider, SectionHeader } from "../../ui";
+import { IoArrowRedoSharp } from "react-icons/io5";
 import { X } from "lucide-react";
 import { usePage } from "../../../context/PageContex";
 import { useEvent } from "../../../context/EventContex";
@@ -37,7 +38,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ isOpen, onClose }) => {
                     color: event.color,
                   }}
                 >
-                  <span>{event.month}</span>
+                  <span>{event.month.slice(0, 3).toUpperCase()}</span>
                   <span className="text-[13px]">{event.day}</span>
                 </div>
                 <div className="min-w-0">
@@ -73,8 +74,9 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ isOpen, onClose }) => {
                 <span className="text-[10px] text-text-muted">
                   by {topic.by}
                 </span>
-                <span className="text-[10px] text-text-muted">
-                  👁 {(topic.views / 1000).toFixed(1)}k
+                <span className="text-[10px] text-text-muted flex items-center">
+                  <IoArrowRedoSharp className="-rotate-90 w-5 h-5 text-brand" />
+                  {(topic.views / 1000).toFixed(1)}k
                 </span>
               </div>
             </div>

@@ -39,12 +39,6 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
   const badgeLabel =
     orgTypeLabel[org?.organizationType ?? ""] ?? "Organization";
 
-  const formatTime = (iso: string) =>
-    new Date(iso).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
   return (
     <div
       className="bg-base-surface border sm:p-4 p-2 animate-fadeIn border-border rounded-md overflow-hidden flex flex-col sm:flex-row gap-0 sm:gap-4 hover:bg-base-hover transition-all cursor-pointer group"

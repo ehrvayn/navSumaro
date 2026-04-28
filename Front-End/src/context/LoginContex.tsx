@@ -40,25 +40,25 @@ export const LoginProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const handleLogin = async () => {
-    setLoginError("");
     setLoading(true);
     try {
       const response = await api.post("/user/login", { email, password });
 
-      const data = response.data;
-
-      if (data.success) {
-        localStorage.setItem("token", data.token);
-        setEmail("");
-        setPassword("");
-        await refreshUser();
-        setActivePage("home");
+      localStorage.setItem("token", response.data.token);
+      setEmail("");
+      setPassword("");
+      await refreshUser();
+      setActivePage("home");
+      setLoginError("");
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        const errorMsg = error.response.data.message || "Login failed!";
+        setLoginError(errorMsg);
+        console.log(loginError);
       } else {
-        setLoginError(data.message || "Login failed!");
+        setLoginError("Something went wrong!");
+        console.error("Network or setup error:", error);
       }
-    } catch (error) {
-      console.error("Login error:", error);
-      setLoginError("Something went wrong!");
     } finally {
       setLoading(false);
     }
