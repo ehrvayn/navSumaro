@@ -48,6 +48,11 @@ export const retrieveOrgByIdController = async (
 export const createEventController = async (req: Request, res: Response) => {
   const eventData = req.body;
   const { orgId } = req.params;
+  const user = (req as any).user;
+
+  if (user.accountType !== "organization") {
+    return res.status(403).json({ message: "Organizations only" });
+  }
 
   const result = await createEvent(eventData, orgId);
 

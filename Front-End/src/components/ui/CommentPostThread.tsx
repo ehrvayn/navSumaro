@@ -6,7 +6,6 @@ import { usePosts } from "../../context/PostContext";
 import { usePage } from "../../context/PageContex";
 import { FaCheckCircle } from "react-icons/fa";
 
-
 interface CommentThreadProps {
   comment: Comment;
   comments: Comment[];
@@ -77,7 +76,7 @@ const CommentThread: React.FC<CommentThreadProps> = ({
     if (c.author.accountType === "organization") {
       return (c.author as any).name?.[0] ?? "";
     }
-    return (c.author.firstname?.[0] ?? "") + (c.author.lastname?.[0] ?? "");
+    return c.author.firstname?.[0] ?? "";
   };
 
   const getAuthorInfo = () => {
@@ -101,7 +100,11 @@ const CommentThread: React.FC<CommentThreadProps> = ({
               setSelectedPostId(null);
             }}
           >
-            <Avatar initials={getAuthorInitials()} size="sm" />
+            <Avatar
+              initials={getAuthorInitials()}
+              color={c.author.id}
+              size="sm"
+            />
           </button>
           {viewReplies && replies.length > 0 && (
             <div className="absolute top-8 bottom-0 left-1/2 -translate-x-1/2 w-[2px] bg-gray-700" />

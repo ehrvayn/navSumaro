@@ -90,8 +90,7 @@ const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
       return (listing.seller as any).name?.[0] ?? "";
     }
     return (
-      (listing.seller.firstname?.[0] ?? "") +
-      (listing.seller.lastname?.[0] ?? "")
+      (listing.seller.firstname?.[0] ?? "") 
     );
   };
 
@@ -258,7 +257,7 @@ const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                     }
                   }}
                 >
-                  <Avatar initials={getAuthorInitials()} size="sm" />
+                  <Avatar initials={getAuthorInitials()} color={listing.seller.id} size="sm" />
                 </button>
                 <div>
                   <div className="flex items-center gap-1.5">
@@ -455,7 +454,7 @@ const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
 
           <div className="shrink-0 p-6 bg-base-surface border-t border-border">
             <div className="flex items-center gap-3">
-              <Avatar initials={getAuthorInitials()} size="sm" />
+              <Avatar initials={getAuthorInitials()} color={listing.seller.id} size="sm" />
               <div className="relative flex-1">
                 <input
                   value={comment}

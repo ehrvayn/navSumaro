@@ -47,7 +47,7 @@ function GroupRightSidebar({
                     color: e.color,
                   }}
                 >
-                  <span>{e.month}</span>
+                  <span>{e.month.slice(0, 3)}</span>
                   <span className="text-[13px]">{e.day}</span>
                 </div>
                 <div className="min-w-0">

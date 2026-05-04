@@ -55,13 +55,13 @@ const ListingCommentThread: React.FC<ListingCommentThreadProps> = ({ comment: c,
   };
 
   const getAuthorName = () => `${c.author.firstname ?? ""} ${c.author.lastname ?? ""}`.trim();
-  const getAuthorInitials = () => (c.author.firstname?.[0] ?? "") + (c.author.lastname?.[0] ?? "");
+  const getAuthorInitials = () => (c.author.firstname?.[0] ?? "");
 
   return (
     <div className="flex flex-col min-w-0">
       <div className="flex gap-1 min-w-0">
         <div className="relative flex flex-col items-center shrink-0 w-8">
-          <Avatar initials={getAuthorInitials()} size="sm" />
+          <Avatar initials={getAuthorInitials()} color={c.author.id} size="sm" />
           {viewReplies && replies.length > 0 && (
             <div className="absolute top-8 bottom-0 left-1/2 -translate-x-1/2 w-[2px] bg-gray-700" />
           )}

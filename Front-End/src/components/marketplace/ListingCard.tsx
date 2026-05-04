@@ -52,7 +52,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onClick }) => {
       if (listing.seller.accountType === "organization") {
         return (listing.seller as any).name?.[0] ?? "";
       }
-      return ((listing.seller).firstname?.[0] ?? "") + ((listing.seller).lastname?.[0] ?? "");
+      return ((listing.seller).firstname?.[0] ?? "");
     };
 
   const handleMessage = (e: React.MouseEvent) => {
@@ -118,7 +118,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onClick }) => {
                 }
               }}
             >
-            <Avatar initials={getAuthorInitials()} size="sm" />
+            <Avatar initials={getAuthorInitials()} color={listing.seller.id} size="sm" />
 
             </button>
             <div className="flex flex-col flex-wrap min-w-0">

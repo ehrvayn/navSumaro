@@ -76,10 +76,7 @@ const PostCard: React.FC<PostCardProps> = ({
     if (post.author.accountType === "organization") {
       return (post.author as any).name?.[0] ?? "";
     }
-    return (
-      ((post.author as User).firstname?.[0] ?? "") +
-      ((post.author as User).lastname?.[0] ?? "")
-    );
+    return (post.author as User).firstname?.[0] ?? "";
   };
 
   return (
@@ -185,7 +182,11 @@ const PostCard: React.FC<PostCardProps> = ({
               getUserData(post.author.id);
             }}
           >
-            <Avatar initials={getAuthorInitials()} size="sm" />
+            <Avatar
+              initials={getAuthorInitials()}
+              color={post.author.id}
+              size="sm"
+            />
           </button>
           <div>
             <div className="flex items-center gap-1.5">

@@ -1,15 +1,6 @@
 import React from "react";
 import { useCurrentUser } from "../../context/CurrentUserContex";
 
-const uniqueAvatarColor = (seed: string): string => {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const hue = Math.abs(hash) % 360;
-  return `hsl(${hue}, 60%, 50%)`;
-};
-
 interface AvatarProps {
   initials?: string | null;
   size?: "xs" | "sm" | "md" | "lg";
@@ -25,6 +16,15 @@ const avatarSizes = {
   lg: "w-11 h-11 text-sm",
 };
 
+const uniqueAvatarColor = (seed: string): string => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 60%, 50%)`;
+};
+
 export const Avatar: React.FC<AvatarProps> = ({
   initials,
   size = "md",
@@ -35,6 +35,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   const { currentUser } = useCurrentUser();
 
   let displayInitials = "";
+  const seed = color ?? currentUser?.id ?? "default";
 
   if (initials && initials.length > 0) {
     displayInitials = initials;
@@ -42,12 +43,11 @@ export const Avatar: React.FC<AvatarProps> = ({
     if (currentUser.accountType === "organization") {
       displayInitials = (currentUser as any).name?.[0] ?? "";
     } else {
-      displayInitials =
-        (currentUser.firstname?.[0] ?? "") + (currentUser.lastname?.[0] ?? "");
+      displayInitials = currentUser.firstname?.[0] ?? "";
     }
   }
 
-  const backgroundColor = color ?? uniqueAvatarColor(displayInitials);
+  const backgroundColor = uniqueAvatarColor(seed);
 
   return (
     <div className="relative shrink-0">

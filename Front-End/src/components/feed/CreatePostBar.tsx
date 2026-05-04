@@ -19,7 +19,15 @@ const CreatePostBar: React.FC<CreatePostBarProps> = ({ onOpen }) => {
           setActivePage("myprofile");
         }}
       >
-        <Avatar initials={currentUser.avatar} size="md" />
+        <Avatar
+          initials={
+            currentUser.accountType === "organization"
+              ? currentUser.firstname?.[0]
+              : currentUser.firstname?.[0]
+          }
+          color={currentUser.id}
+          size="md"
+        />
       </button>
       <button
         onClick={onOpen}

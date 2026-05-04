@@ -10,12 +10,8 @@ const tabs = [
 ];
 
 const MessagesPage: React.FC = () => {
-  const {
-    setSelectedConversation,
-    selectedConversation,
-    threads,
-    setThreads,
-  } = useMessages();
+  const { setSelectedConversation, selectedConversation, threads, setThreads } =
+    useMessages();
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("Messages");
   const [loading, setLoading] = useState(false);
@@ -30,7 +26,7 @@ const MessagesPage: React.FC = () => {
   }
 
   const filteredThreads = threads.filter((t) =>
-    `${t.firstname} ${t.lastname}`.toLowerCase().includes(search.toLowerCase())
+    `${t.firstname} ${t.lastname}`.toLowerCase().includes(search.toLowerCase()),
   );
 
   const online = threads.filter((t) => t.isOnline);
@@ -40,7 +36,9 @@ const MessagesPage: React.FC = () => {
       <div className="flex gap-6">
         <div className="w-64 shrink-0 pl-5 hidden md:flex flex-col gap-2">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-lg font-extrabold text-text-primary">Messages</h1>
+            <h1 className="text-lg font-extrabold text-text-primary">
+              Messages
+            </h1>
             <button className="p-2 rounded-xl text-text-muted hover:bg-base-hover transition-colors">
               <Edit size={16} />
             </button>
@@ -94,7 +92,7 @@ const MessagesPage: React.FC = () => {
                     className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-base-hover transition-colors"
                   >
                     <div className="relative shrink-0">
-                      <Avatar initials={t.avatar} size="xs" />
+                      <Avatar initials={t.firstname[0]} color={t.participantId} size="xs" />
                       <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border-2 border-base" />
                     </div>
                     <span className="text-xs text-text-primary font-medium truncate">
@@ -110,7 +108,9 @@ const MessagesPage: React.FC = () => {
         <div className="flex-1 min-w-0">
           <div className="px-4">
             <div className="md:hidden flex items-center justify-between mb-4">
-              <h1 className="text-lg font-extrabold text-text-primary">Messages</h1>
+              <h1 className="text-lg font-extrabold text-text-primary">
+                Messages
+              </h1>
               <button className="p-2 rounded-xl text-text-muted hover:bg-base-hover transition-colors">
                 <Edit size={16} />
               </button>
@@ -124,7 +124,8 @@ const MessagesPage: React.FC = () => {
                     key={tab.label}
                     onClick={() => {
                       setActiveTab(tab.label);
-                      if (tab.label !== "Messages") setSelectedConversation(null);
+                      if (tab.label !== "Messages")
+                        setSelectedConversation(null);
                     }}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold shrink-0 transition-all ${
                       activeTab === tab.label
@@ -155,9 +156,13 @@ const MessagesPage: React.FC = () => {
           {activeTab === "Messages" && (
             <div className="bg-base-surface border border-border rounded-none md:rounded-lg overflow-hidden">
               {loading ? (
-                <div className="py-12 text-center text-text-muted text-sm">Loading...</div>
+                <div className="py-12 text-center text-text-muted text-sm">
+                  Loading...
+                </div>
               ) : filteredThreads.length === 0 ? (
-                <div className="py-12 text-center text-text-muted text-sm">No conversations found</div>
+                <div className="py-12 text-center text-text-muted text-sm">
+                  No conversations found
+                </div>
               ) : (
                 filteredThreads.map((t) => (
                   <div
@@ -165,22 +170,30 @@ const MessagesPage: React.FC = () => {
                     onClick={() => {
                       setThreads((prev) =>
                         prev.map((thread) =>
-                          thread.id === t.id ? { ...thread, unread: 0 } : thread
-                        )
+                          thread.id === t.id
+                            ? { ...thread, unread: 0 }
+                            : thread,
+                        ),
                       );
                       setSelectedConversation(t);
                     }}
                     className="flex gap-3 px-4 py-3.5 border-b border-border last:border-0 hover:bg-base-hover cursor-pointer transition-colors"
                   >
                     <div className="relative shrink-0">
-                      <Avatar initials={(t.firstname[0]) + (t.lastname[0])} size="sm" />
+                      <Avatar
+                        initials={t.firstname[0]}
+                        color={t.participantId}
+                        size="sm"
+                      />
                       {t.isOnline && (
                         <span className="absolute bottom-1.5 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-base-surface" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-0.5">
-                        <span className={`text-xs font-bold ${t.unread > 0 ? "text-text-primary" : "text-text-secondary"}`}>
+                        <span
+                          className={`text-xs font-bold ${t.unread > 0 ? "text-text-primary" : "text-text-secondary"}`}
+                        >
                           {t.firstname} {t.lastname}
                         </span>
                         <span className="text-[10px] text-text-muted shrink-0 ml-2">
@@ -188,7 +201,9 @@ const MessagesPage: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex items-center justify-between gap-2">
-                        <div className={`text-[11px] truncate ${t.unread > 0 ? "text-text-primary font-medium" : "text-text-muted"}`}>
+                        <div
+                          className={`text-[11px] truncate ${t.unread > 0 ? "text-text-primary font-medium" : "text-text-muted"}`}
+                        >
                           {t.lastMessage}
                         </div>
                         {t.unread > 0 && (
@@ -207,7 +222,9 @@ const MessagesPage: React.FC = () => {
           {activeTab === "People" && (
             <div className="bg-base-surface border border-border rounded-2xl overflow-hidden">
               {filteredThreads.length === 0 ? (
-                <div className="py-12 text-center text-text-muted text-sm">No people found</div>
+                <div className="py-12 text-center text-text-muted text-sm">
+                  No people found
+                </div>
               ) : (
                 filteredThreads.map((t) => (
                   <div
@@ -215,7 +232,7 @@ const MessagesPage: React.FC = () => {
                     className="flex items-center gap-3 px-4 py-3.5 border-b border-border last:border-0 hover:bg-base-hover cursor-pointer transition-colors"
                   >
                     <div className="relative shrink-0">
-                      <Avatar initials={t.avatar} size="sm" />
+                      <Avatar initials={t.firstname[0]} color={t.participantId} size="sm" />
                       {t.isOnline && (
                         <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border-2 border-base-surface" />
                       )}
@@ -224,7 +241,9 @@ const MessagesPage: React.FC = () => {
                       <div className="text-xs font-bold text-text-primary">
                         {t.firstname} {t.lastname}
                       </div>
-                      <div className="text-[11px] text-text-muted">{t.program}</div>
+                      <div className="text-[11px] text-text-muted">
+                        {t.program}
+                      </div>
                     </div>
                     <button className="px-3 py-1.5 rounded-xl bg-brand/10 text-brand text-[11px] font-semibold hover:bg-brand/20 transition-colors shrink-0">
                       Message

@@ -52,9 +52,7 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
     if (isOrgParticipant) {
       return participant?.firstname?.[0] ?? "";
     }
-    return (
-      (participant?.firstname?.[0] ?? "") + (participant?.lastname?.[0] ?? "")
-    );
+    return participant?.firstname?.[0] ?? "";
   };
 
   const isTempId = (id: string) =>
@@ -135,8 +133,8 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
     }
     const fetchMessages = async () => {
       try {
-        const response = await api.post("/message/retrieveAll", { 
-          threadId: conversation.id 
+        const response = await api.post("/message/retrieveAll", {
+          threadId: conversation.id,
         });
         const data = response.data;
         if (data.success) {
@@ -168,7 +166,9 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
 
   const handleDeleteConvo = async () => {
     try {
-      const response = await api.delete(`/message/threads/delete/${conversation.id}`);
+      const response = await api.delete(
+        `/message/threads/delete/${conversation.id}`,
+      );
       if (response.data.success) {
         setThreads((prev) => prev.filter((t) => t.id !== conversation.id));
         onBack();
@@ -191,7 +191,11 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
             <ArrowLeft size={18} />
           </button>
           <div className="relative inline-flex">
-            <Avatar initials={getInitials()} size="xs" />
+            <Avatar
+              initials={getInitials()}
+              color={conversation.participantId}
+              size="xs"
+            />
             {isOnline && (
               <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-base-surface" />
             )}
@@ -268,7 +272,13 @@ const ConversationPage: React.FC<ConversationPageProps> = ({
                 key={m.id}
                 className={`flex gap-2 items-end ${isMe ? "flex-row-reverse" : ""}`}
               >
-                {!isMe && <Avatar initials={getInitials()} size="xs" />}
+                {!isMe && (
+                  <Avatar
+                    initials={getInitials()}
+                    color={conversation.participantId}
+                    size="xs"
+                  />
+                )}
                 <div
                   className={`px-3 py-2 text-xs rounded-2xl max-w-[70%] ${isMe ? "bg-orange-600 text-white rounded-br-none" : "bg-white/[0.05] border border-white/10 text-slate-200 rounded-bl-none"}`}
                 >

@@ -89,7 +89,7 @@ const GroupChat: React.FC<GroupChatProps> = ({ conversation }) => {
                 {!isMe && (
                   <div className=" self-center">
                     <Avatar
-                      initials={`${msg.firstname?.[0] || ""}${msg.lastname?.[0] || ""}`}
+                      initials={`${msg.firstname?.[0] || ""}`}
                       size="xs"
                     />
                   </div>

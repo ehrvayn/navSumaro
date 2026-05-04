@@ -31,7 +31,7 @@ function GroupMembers({ members }: GroupMemberProps) {
             <div className="flex items-center gap-3 min-w-0">
               <Avatar
                 initials={
-                  (m.user.firstname?.[0] ?? "") + (m.user.lastname?.[0] ?? "")
+                  (m.user.firstname?.[0] ?? "")
                 }
                 size="md"
                 isOnline={m.user.isOnline}

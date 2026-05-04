@@ -260,10 +260,10 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose }) => {
                 <Avatar
                   initials={
                     post.author.accountType === "student"
-                      ? ((post.author as User).firstname?.[0] ?? "") +
-                        ((post.author as User).lastname?.[0] ?? "")
+                      ? ((post.author as User).firstname?.[0] ?? "")
                       : ((post.author as Organization).name?.[0] ?? "")
                   }
+                  color={post.author.id}
                   size="sm"
                 />
               </button>

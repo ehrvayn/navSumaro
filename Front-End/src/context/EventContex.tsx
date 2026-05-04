@@ -8,6 +8,8 @@ interface EventContextType {
   showCreateEvent: boolean;
   setShowCreateEvent: React.Dispatch<React.SetStateAction<boolean>>;
   getEvents: () => void;
+  selectedMonth: number | null;
+  setSelectedMonth: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
 const EventContext = createContext<EventContextType | null>(null);
@@ -17,6 +19,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
 
   useEffect(() => {
     getEvents();
@@ -87,6 +90,8 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
     <EventContext.Provider
       value={{
         getEvents,
+        selectedMonth,
+        setSelectedMonth,
         handleCreateEvent,
         events,
         showCreateEvent,
