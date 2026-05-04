@@ -1,6 +1,6 @@
 import React from "react";
 import { Divider } from "../../ui";
-import { X } from "lucide-react";
+import { X, Zap, Clock, Lightbulb, Users } from "lucide-react";
 import { usePosts } from "../../../context/PostContext";
 
 interface LeftSidebarProps {
@@ -13,8 +13,8 @@ interface LeftSidebarProps {
 }
 
 const filters = [
-  { id: "newest", label: "Newest & Recent", sub: "" },
-  { id: "popular", label: "Popular Today", sub: "" },
+  { id: "newest", label: "Newest First", icon: Clock },
+  { id: "popular", label: "Most Discussed", icon: Zap },
 ];
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({
@@ -27,101 +27,125 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
 }) => {
   const { popularTags } = usePosts();
   const content = (
-    <div className="pt-5 mt-[60px] md:mt-0">
-      <div className="mb-5">
-        {filters.map((f, index) => (
-          <button
-            key={f.id || index}
-            onClick={() => {
-              onFilterChange(f.id);
-              onClose?.();
-            }}
-            className={`sidebar-item mb-1 border ${
-              activeFilter === f.id
-                ? "bg-orange-500/10 border-orange-500/20"
-                : "border-transparent hover:bg-base-hover"
-            }`}
-          >
-            <div className="flex-1 min-w-0">
-              <div className="h-px w-full bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
-              <div
-                className={`flex items-center pt-1 justify-center *:gap-1.5 text-xs font-semibold ${
-                  activeFilter === f.id ? "text-brand" : "text-text-secondary"
+    <div className="pt-5 mt-[60px] md:mt-0 flex flex-col h-full">
+      <div className="flex-1">
+        <div className="mb-6">
+          <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-3">
+            Sort
+          </h3>
+          <div className="space-y-2">
+            {filters.map((f) => {
+              const Icon = f.icon;
+              return (
+                <button
+                  key={f.id}
+                  onClick={() => {
+                    onFilterChange(f.id);
+                    onClose?.();
+                  }}
+                  className={`w-full flex items-center gap-2 px-3 py-2 rounded text-xs font-medium transition-colors ${
+                    activeFilter === f.id
+                      ? "bg-brand text-white"
+                      : "text-text-secondary hover:text-text-primary hover:bg-base-hover"
+                  }`}
+                >
+                  <Icon size={13} />
+                  {f.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <Divider className="mb-6" />
+
+        <div className="mb-6">
+          <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-3">
+            Topics
+          </h3>
+          <div className="space-y-1">
+            {popularTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => {
+                  onTagClick(tag);
+                  onClose?.();
+                }}
+                className={`w-full text-left text-xs px-2 py-1.5 rounded transition-colors ${
+                  activeTag === tag
+                    ? "bg-brand/20 text-brand font-medium"
+                    : "text-text-secondary hover:text-text-primary hover:bg-base-hover"
                 }`}
               >
-                {f.label}
-              </div>
-              <div className="text-[10px] text-text-muted mt-0.5">{f.sub}</div>
-            </div>
-          </button>
-        ))}
-      </div>
+                #{tag}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      <Divider className="mb-5" />
-      <div className="text-[10px] font-bold text-text-muted tracking-[1.2px] uppercase mb-2 pl-0.5">
-        Popular tags
-      </div>
-      {popularTags.map((tag) => (
-        <div
-          key={tag}
-          className={`${activeTag === tag && "border-b border-orange-500/80"}`}
-        >
-          <button
-            onClick={() => {
-              onTagClick(tag);
-              onClose?.();
-            }}
-            className={`sidebar-item mb-0.5`}
-          >
-            <div className="flex-1 min-w-0">
-              <div
-                className={`text-xs font-semibold truncate ${activeTag === tag ? "text-brand" : "text-text-secondary"}`}
+        <Divider className="mb-6" />
+
+        <div>
+          <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-3">
+            advertisement
+          </h3>
+          <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-md p-3 overflow-hidden relative group cursor-pointer hover:border-purple-500/40 transition-all">
+            <div className="relative z-10 flex flex-col gap-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-10 h-10 rounded-md bg-purple-500/30 flex items-center justify-center text-[30px] shrink-0">
+                  🏪
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-xs font-bold text-text-primary truncate">
+                    Campus Cafe.
+                  </h3>
+                  <p className="text-[10px] text-text-muted">Coffee & Snacks</p>
+                </div>
+              </div>
+
+              <p className="text-[10px] text-text-muted leading-relaxed">
+                10% off for students. Visit us near campus!
+              </p>
+
+              <button
+                onClick={() => alert("This feature is under Development!")}
+                className="w-full bg-purple-500 hover:bg-purple-600 text-white text-[11px] font-bold py-1.5 rounded-md transition-all"
               >
-                {tag}
-              </div>
+                Learn More
+              </button>
             </div>
-          </button>
-        </div>
-      ))}
-
-      <Divider className="mb-4" />
-
-      <div>
-        <div className="text-[10px] font-bold text-text-muted tracking-[1.2px] uppercase mb-2 pl-0.5">
-          Sponsored
+          </div>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-lg p-3 overflow-hidden relative group cursor-pointer hover:border-purple-500/40 transition-all">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/5 to-purple-500/0" />
-
-          <div className="relative z-10 flex flex-col gap-2">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-10 h-10 rounded-md bg-purple-500/30 flex items-center justify-center text-[30px] shrink-0">
-                🏪
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-xs font-bold text-text-primary truncate">
-                  Campus Cafe.
-                </h3>
-                <p className="text-[10px] text-text-muted">Coffee & Snacks</p>
+        <div className="mt-6 pt-6 border-t border-border">
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded p-3">
+            <div className="flex items-start gap-2 mb-2">
+              <Lightbulb
+                size={14}
+                className="text-blue-400 flex-shrink-0 mt-0.5"
+              />
+              <div className="flex-1">
+                <p className="text-[11px] font-semibold text-blue-400 mb-1">
+                  Community Tip
+                </p>
+                <p className="text-[10px] text-blue-300 leading-relaxed">
+                  Be respectful, search before posting, and provide context for
+                  better answers.
+                </p>
               </div>
             </div>
+          </div>
 
-            <p className="text-[10px] text-text-muted leading-relaxed">
-              10% off for students. Visit us near campus!
-            </p>
+          <div className="mt-3 pt-3 border-t border-border">
+            <div className="text-center">
 
-            <button
-              onClick={() => alert("This feature is under Development!")}
-              className="w-full bg-purple-500 hover:bg-purple-600 text-white text-[11px] font-bold py-1.5 rounded-md transition-all"
-            >
-              Learn More
-            </button>
+              <div className="flex items-center justify-center gap-1 text-[10px] text-text-secondary">
+                <span>NavSumaro 2026</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
-      <div className="h-10" />
     </div>
   );
 
@@ -135,21 +159,19 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
         <div className="fixed inset-0 z-40 lg:hidden" onClick={onClose}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div
-            className="absolute top-0 left-0 h-full w-64 bg-base-elevated border-r border-white/10 shadow-2xl z-50 overflow-y-auto"
+            className="absolute top-0 left-0 h-full w-64 bg-base-elevated border-r border-border z-50 overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-4 pt-4 pb-2 sticky top-0 bg-base-elevated z-10">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                Browse
-              </span>
+            <div className="flex items-center justify-between px-4 pt-4 pb-3 sticky top-0 bg-base-elevated z-10 border-b border-border">
+              <h2 className="text-xs font-bold text-text-primary">Browse</h2>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all"
+                className="p-1 rounded text-text-muted hover:text-text-primary hover:bg-base-hover transition-colors"
               >
-                <X size={15} />
+                <X size={16} />
               </button>
             </div>
-            <div className="px-3">{content}</div>
+            <div className="px-4">{content}</div>
           </div>
         </div>
       )}

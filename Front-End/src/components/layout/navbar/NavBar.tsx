@@ -63,9 +63,6 @@ const Topbar: React.FC<TopbarProps> = ({
             <div className="font-extrabold text-[15px] text-white tracking-tight">
               <img src={Logo} className="h-full w-[180px]" />
             </div>
-            <div className="text-[8px] text-center text-gray-400 tracking-wide">
-              One platform. Your entire campus
-            </div>
           </div>
         </div>
 

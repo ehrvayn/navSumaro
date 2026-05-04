@@ -79,7 +79,6 @@ function EventSidebar({
   );
   const [showFilters, setShowFilters] = useState(false);
   const [showDateFilter, setShowDateFilter] = useState(false);
-
   const activeFilterObj = filters.find((f) => f.value === activeFilter)!;
 
   return (
@@ -113,7 +112,10 @@ function EventSidebar({
 
       <div className="space-y-1.5">
         <button
-          onClick={() => setShowFilters((v) => !v)}
+          onClick={() => {
+            setShowFilters((v) => !v);
+            setShowDateFilter(false);
+          }}
           className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md border font-bold text-[11px] transition-all ${
             showFilters || activeFilter !== "all"
               ? "bg-brand text-white border-brand"
@@ -169,7 +171,10 @@ function EventSidebar({
 
       <div className="space-y-1.5">
         <button
-          onClick={() => setShowDateFilter((v) => !v)}
+          onClick={() => {
+            setShowDateFilter((v) => !v);
+            setShowFilters(false);
+          }}
           className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md border font-bold text-[11px] transition-all ${
             showDateFilter || selectedMonth !== null
               ? "bg-brand text-white border-brand"
@@ -199,7 +204,9 @@ function EventSidebar({
           <div className="p-3 bg-base-surface border border-border rounded-md space-y-3">
             <div className="flex items-center justify-between">
               <button
-                onClick={() => setSelectedYear((y) => y - 1)}
+                onClick={() => {
+                  setSelectedYear((y) => y - 1);
+                }}
                 className="w-7 h-7 rounded-lg bg-base-hover text-text-muted hover:text-text-primary transition-all text-sm font-bold flex items-center justify-center"
               >
                 ‹

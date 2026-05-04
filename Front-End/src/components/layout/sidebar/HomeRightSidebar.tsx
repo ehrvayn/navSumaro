@@ -16,7 +16,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ isOpen, onClose }) => {
   const { events } = useEvent();
 
   const content = (
-    <div className="pt-5 mt-[60px] md:mt-0">
+    <div className="pt-5 mt-[60px] pr-2 md:mt-0">
       <section className="mb-6">
         <SectionHeader
           title="Campus Events"

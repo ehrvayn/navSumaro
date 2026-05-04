@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Event } from "../types";
 import api from "../lib/api";
+import { useCurrentUser } from "./CurrentUserContex";
 
 interface EventContextType {
   handleCreateEvent: (data: Omit<Event, "id" | "createdAt">) => void;
@@ -20,10 +21,13 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
   const [events, setEvents] = useState<Event[]>([]);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  const { currentUser } = useCurrentUser();
 
   useEffect(() => {
-    getEvents();
-  }, []);
+    if (currentUser) {
+      getEvents();
+    }
+  }, [currentUser]);
 
   const getEvents = async () => {
     const token = localStorage.getItem("token");
