@@ -151,7 +151,7 @@ function ProfilePage() {
     if (isOrg) {
       return (draft as any).name?.[0] ?? "";
     }
-    return (draft.firstname?.[0] ?? "") + (draft.lastname?.[0] ?? "");
+    return (draft.firstname?.[0] ?? "");
   };
 
   return (
@@ -161,7 +161,7 @@ function ProfilePage() {
           <div className="w-full lg:w-[320px] lg:sticky lg:top-6 flex flex-col gap-4 shrink-0">
             <div className="bg-base-elevated border border-border rounded-md overflow-hidden">
               <div className="flex flex-col items-center gap-3 px-6 py-6">
-                <Avatar initials={getInitials()} size="md" />
+                <Avatar initials={getInitials()} color={draft.id} size="md" />
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1.5 flex-wrap">
                     <h1 className="text-[14px] font-black text-text-primary">

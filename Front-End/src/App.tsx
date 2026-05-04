@@ -44,7 +44,6 @@ const App: React.FC = () => {
     setShowDeletePost,
     isEditing,
     setIsEditing,
-    editPostId,
   } = usePosts();
 
   const { showCreateGroup, setShowCreateGroup } = useGroup();
@@ -63,8 +62,9 @@ const App: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-base">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+      <div className="h-screen w-screen gap-10 flex flex-col items-center justify-center bg-base">
+        <div className="animate-spin rounded-full sm:h-[200px] sm:w-[200px] h-[100px] w-[100px] border-t-4 border-orange-500"></div>
+        <p>Loading please wait . . .</p>
       </div>
     );
   }

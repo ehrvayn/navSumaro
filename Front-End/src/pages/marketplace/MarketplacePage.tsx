@@ -98,7 +98,7 @@ const MarketplacePage: React.FC<MarketplacePageProps> = ({ searchQuery, onListin
           </div>
           <button onClick={() => setShowSold(!showSold)} className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-[11px] font-bold border transition-all ${showSold ? "bg-brand/5 text-brand border-brand/20" : "bg-base-surface text-text-muted border-border"}`}>
             <div className={`w-1.5 h-1.5 rounded-full ${showSold ? "bg-brand animate-pulse" : "bg-text-muted"}`} />
-            {showSold ? "Hide Sold Items" : "Show Sold Items"}
+            {showSold ? "Hide Sold Items?" : "Show Sold Items?"}
           </button>
         </div>
       </div>

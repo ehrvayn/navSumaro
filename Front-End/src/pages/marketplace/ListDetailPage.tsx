@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MarketplaceListing, Comment, Message } from "../../types";
-import { Avatar } from "../../components/ui";
+import { Avatar, Button } from "../../components/ui";
 import { useCurrentUser } from "../../context/CurrentUserContex";
 import { useListings } from "../../context/ListingContext";
 import { useMessages } from "../../context/MessageContext";
@@ -89,9 +89,7 @@ const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
     if (listing.seller.accountType === "organization") {
       return (listing.seller as any).name?.[0] ?? "";
     }
-    return (
-      (listing.seller.firstname?.[0] ?? "") 
-    );
+    return listing.seller.firstname?.[0] ?? "";
   };
 
   const handleMessage = (e: React.MouseEvent) => {
@@ -257,7 +255,11 @@ const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                     }
                   }}
                 >
-                  <Avatar initials={getAuthorInitials()} color={listing.seller.id} size="sm" />
+                  <Avatar
+                    initials={getAuthorInitials()}
+                    color={listing.seller.id}
+                    size="sm"
+                  />
                 </button>
                 <div>
                   <div className="flex items-center gap-1.5">
@@ -276,7 +278,7 @@ const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
               </div>
               <div className="flex items-center justify-between sm:justify-end gap-5 md:gap-4 px-2 py-2 sm:p-0 bg-base-hover sm:bg-transparent rounded-md">
                 <div className="flex items-center gap-4">
-                  {listing.seller.id === currentUser.id && (
+                  {listing.seller.id === currentUser.id ? (
                     <button
                       onClick={() => {
                         setIsSold((p) => !p);
@@ -286,6 +288,15 @@ const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                     >
                       {isSold ? "Sold" : "Mark sold"}
                     </button>
+                  ) : (
+                    <Button
+                      className={`hover:bg-gray-500 text-[7px] md:text-[12px] active:scale-[0.75] ${listing.sold && "invisible"}`}
+                      fullWidth
+                      onClick={handleMessage}
+                      size="sm"
+                    >
+                      <MessageCircleMore size={18} /> Message Seller
+                    </Button>
                   )}
                 </div>
                 <div className="flex items-center gap-4 border-l border-border pl-4 sm:border-none sm:pl-0">
@@ -299,15 +310,6 @@ const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                       className="md:w-5 md:h-5 active:scale-[0.70] transition-transform hover:scale-[1.1]"
                     />
                     <span className="w-2">{listing.likes}</span>
-                  </button>
-                  <button
-                    onClick={handleMessage}
-                    className="text-text-muted hover:text-text-primary transition-colors"
-                  >
-                    <MessageCircleMore
-                      size={18}
-                      className="md:w-5 md:h-5 active:scale-[0.70] transition-transform hover:scale-[1.1]"
-                    />
                   </button>
                 </div>
               </div>
@@ -379,7 +381,7 @@ const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             </div>
 
             {!showFullTitle && listing.description && (
-              <div className="bg-base-elevated border-t border-border -mx-6 md:-mx-10 mt-10">
+              <div className="bg-base-elevated border-t mb-3 border-border -mx-6 md:-mx-10 mt-10">
                 <div className="px-6 md:px-10 pt-6 pb-6">
                   <p className="text-[10px] text-text-muted uppercase tracking-widest font-bold mb-3">
                     Description
@@ -454,7 +456,11 @@ const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
 
           <div className="shrink-0 p-6 bg-base-surface border-t border-border">
             <div className="flex items-center gap-3">
-              <Avatar initials={getAuthorInitials()} color={listing.seller.id} size="sm" />
+              <Avatar
+                initials={getAuthorInitials()}
+                color={listing.seller.id}
+                size="sm"
+              />
               <div className="relative flex-1">
                 <input
                   value={comment}

@@ -137,7 +137,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({ onClose }) => {
           {selectedImages.length > 0 && (
             <div className="relative w-full flex-1 overflow-hidden">
               <button
-                className="absolute z-[100] top-2 left-1/2 -translate-x-1/2 hover:scale-[105%] active:scale-[90%]"
+                className="absolute z-[100] bottom-10 left-1/2 -translate-x-1/2 hover:scale-[105%] active:scale-[90%]"
                 onClick={(e) => { e.stopPropagation(); handleRemove(); }}
               >
                 <div className="border-2 border-orange-500 bg-black/60 text-orange-500 px-2 rounded-md">remove</div>

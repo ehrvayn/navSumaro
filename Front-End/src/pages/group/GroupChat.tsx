@@ -90,6 +90,7 @@ const GroupChat: React.FC<GroupChatProps> = ({ conversation }) => {
                   <div className=" self-center">
                     <Avatar
                       initials={`${msg.firstname?.[0] || ""}`}
+                      color={msg.senderId}
                       size="xs"
                     />
                   </div>

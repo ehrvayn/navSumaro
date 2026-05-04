@@ -10,25 +10,30 @@ import { PageProvider } from "./context/PageContex";
 import { EventProvider } from "./context/EventContex";
 import { CurrentUserProvider } from "./context/CurrentUserContex";
 import { LoginProvider } from "./context/LoginContex";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <PageProvider>
-      <CurrentUserProvider>
-        <LoginProvider>
-          <MessageProvider>
-            <GroupProvider>
-              <PostProvider>
-                <ListingProvider>
-                  <EventProvider>
-                    <App />
-                  </EventProvider>
-                </ListingProvider>
-              </PostProvider>
-            </GroupProvider>
-          </MessageProvider>
-        </LoginProvider>
-      </CurrentUserProvider>
-    </PageProvider>
+    <QueryClientProvider client={queryClient}>
+      <PageProvider>
+        <CurrentUserProvider>
+          <LoginProvider>
+            <MessageProvider>
+              <GroupProvider>
+                <PostProvider>
+                  <ListingProvider>
+                    <EventProvider>
+                      <App />
+                    </EventProvider>
+                  </ListingProvider>
+                </PostProvider>
+              </GroupProvider>
+            </MessageProvider>
+          </LoginProvider>
+        </CurrentUserProvider>
+      </PageProvider>
+    </QueryClientProvider>
   </React.StrictMode>,
 );

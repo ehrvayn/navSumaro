@@ -33,6 +33,7 @@ function GroupMembers({ members }: GroupMemberProps) {
                 initials={
                   (m.user.firstname?.[0] ?? "")
                 }
+                color={m.user.id}
                 size="md"
                 isOnline={m.user.isOnline}
               />

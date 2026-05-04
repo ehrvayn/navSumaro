@@ -70,7 +70,7 @@ function LoginPage() {
                 },
               ].map((item) => (
                 <div key={item.num} className="flex gap-6 group cursor-pointer">
-                  <div className="text-orange-500/60 group-hover:text-orange-500 transition-colors text-lg font-black tracking-tight font-mono">
+                  <div className="text-orange-500/60 flex items-center group-hover:text-orange-500 transition-colors text-lg font-black tracking-tight font-mono">
                     {item.num}
                   </div>
                   <div className="flex-1 border-l-2 pl-6 py-2 border-orange-500/30 transition-colors">
@@ -206,8 +206,7 @@ function LoginPage() {
 
               <p className="text-center text-xs text-text-muted leading-relaxed">
                 Use your institutional email{" "}
-                <span className="text-brand font-bold">@ncf.edu.ph</span> for a
-                verified badge
+                <span className="text-brand font-bold">@ncf.edu.ph</span>
               </p>
             </div>
           </div>
