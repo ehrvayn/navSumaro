@@ -20,6 +20,8 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose }) => {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [emoji, setEmoji] = useState("📚");
+  const [showEmojis, setShoeEmojis] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -41,6 +43,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose }) => {
 
   const handleCreate = () => {
     if (!name.trim()) return;
+    setCreating(true);
     handleCreateGroup({
       name,
       description,
@@ -84,15 +87,23 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose }) => {
                 Icon
               </span>
               <div className="relative group">
-                <button className="w-11 h-11 rounded-xl bg-base-hover border border-border text-xl flex items-center justify-center hover:border-orange-500/50 transition-colors">
+                <button
+                  onClick={() => setShoeEmojis(!showEmojis)}
+                  className={`w-11 h-11 rounded-xl bg-base-hover border border-border text-xl flex items-center justify-center hover:border-orange-500/50 transition-colors`}
+                >
                   {emoji}
                 </button>
-                <div className="absolute top-full left-0 mt-1.5 bg-base-elevated border border-border rounded-xl p-2 grid grid-cols-5 gap-1 opacity-0 pointer-events-none group-focus-within:opacity-100 group-focus-within:pointer-events-auto z-20 shadow-xl">
+                <div
+                  className={`${showEmojis ? "grid grid-cols-5" : "hidden"} absolute top-full w-[250px] h-[130px] left-0 mt-1.5 bg-base-elevated border border-border rounded-xl p-2 gap-1 z-20 shadow-xl`}
+                >
                   {EMOJIS.map((e) => (
                     <button
                       key={e}
-                      onClick={() => setEmoji(e)}
-                      className={`w-8 h-8 rounded-lg text-base flex items-center justify-center hover:bg-base-hover transition-colors ${emoji === e ? "bg-orange-500/10 ring-1 ring-orange-500/50" : ""}`}
+                      onClick={() => {
+                        setEmoji(e);
+                        setShoeEmojis(false);
+                      }}
+                      className={`text-[35px] rounded-lg text-base flex items-center justify-center hover:bg-base-hover transition-colors ${emoji === e ? "bg-orange-500/10 ring-1 ring-orange-500/50" : ""}`}
                     >
                       {e}
                     </button>
@@ -248,10 +259,10 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose }) => {
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleCreate} disabled={!name.trim()}>
+          <Button onClick={handleCreate} disabled={!name.trim() || creating}>
             <span className="flex items-center gap-1.5">
               <Rocket size={14} />
-              Create Group
+              {creating ? "Creating..." : "Create Group"}
             </span>
           </Button>
         </div>

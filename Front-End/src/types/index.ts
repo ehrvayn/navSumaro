@@ -67,7 +67,7 @@ export interface Post {
   upVote: boolean;
   downVote: boolean;
   comments: number;
-  type: "question" | "discussion" | "resource" | "research" | "announcement"; 
+  type: "question" | "discussion" | "resource" | "research" | "announcement";
 }
 
 export interface Badge {
@@ -90,7 +90,7 @@ export interface MarketplaceListing {
     | "notes"
     | "supplies"
     | "other";
-  seller: User; 
+  seller: User;
   createdAt: string;
   likes: number;
   comments: number;
@@ -181,7 +181,7 @@ export interface Message {
 export interface GroupConversation {
   id: string;
   title: string;
-  avatar: string | string[]; 
+  avatar: string | string[];
   participants: GroupMember[];
   messages: GroupMessage[];
   lastMessage: string;
@@ -199,7 +199,7 @@ export interface GroupMessage {
   senderAvatar: string;
   text: string;
   time: string;
-  seenBy: string[]; 
+  seenBy: string[];
 }
 
 export interface Notification {
@@ -223,6 +223,19 @@ export interface Notification {
   targetId: string;
 }
 
+export interface JoinRequest {
+  id: string;
+  group_id: string;
+  user_id: string;
+  status: string;
+  created_at: string;
+  firstname: string;
+  lastname: string;
+  program: string;
+  isOnline?: boolean;
+  isVerified?: boolean;
+}
+
 export interface Group {
   id: string;
   name: string;
@@ -237,6 +250,8 @@ export interface Group {
   emoji: string;
   managedBy?: Organization;
   members: GroupMember[];
+  joinRequests?: string[];
+  requestStatus?: "pending" | "approved" | null;
 }
 
 export interface GroupMember {

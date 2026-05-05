@@ -7,6 +7,11 @@ import { leaveGroup } from "../services/group/leaveGroup.js";
 import { kickMember } from "../services/group/kickMember.js";
 import sendMessage from "../services/group/sendMessage.js";
 import { getMessages } from "../services/group/getMessages.js";
+import { requestJoin } from "../services/group/requestJoinGroup.js";
+import { getJoinRequest } from "../services/group/getJoinRequests.js";
+import { approveJoinRequest } from "../services/group/approveJoinRequest.js";
+import { cancelJoinRequest } from "../services/group/cancelJoinRequest.js";
+import { rejectJoinRequest } from "../services/group/rejectJoinRequest.js";
 
 export const createGroupController = async (req: Request, res: Response) => {
   const currentUser = (req as any).user;
@@ -123,4 +128,81 @@ export const getMessagesController = async (req: Request, res: Response) => {
   }
 
   res.status(200).json(result);
+};
+
+export const requestJoinController = async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  const { groupId } = req.params;
+
+  if (!userId || !groupId) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized!",
+    });
+  }
+
+  const result = await requestJoin(userId, groupId);
+
+  return res.status(200).json(result);
+};
+
+export const getJoinRequestController = async (req: Request, res: Response) => {
+  const { groupId } = req.params;
+  if (!groupId) {
+    return res.status(401).json({
+      success: false,
+      message: "unauthorized",
+    });
+  }
+
+  const result = await getJoinRequest(groupId as string);
+
+  return res.status(200).json(result);
+};
+
+export const approveJoinRequestController = async (
+  req: Request,
+  res: Response,
+) => {
+  const currentUser = (req as any).user;
+  const { groupId, userId } = req.params;
+
+  if (currentUser.id === userId) {
+    return res.status(403).json({ success: false, message: "Unauthorized" });
+  }
+
+  const result = await approveJoinRequest(
+    groupId as string,
+    userId as string,
+    currentUser,
+  );
+  return res.status(200).json(result);
+};
+
+export const cancelJoinRequestController = async (
+  req: Request,
+  res: Response,
+) => {
+  const currentUser = (req as any).user;
+  const { groupId, userId } = req.params;
+
+  if (currentUser.id !== userId) {
+    return res.status(403).json({ success: false, message: "Unauthorized" });
+  }
+  const result = await cancelJoinRequest(groupId as string, userId as string);
+  return res.status(200).json(result);
+};
+
+export const rejectJoinRequestController = async (
+  req: Request,
+  res: Response,
+) => {
+  const currentUser = (req as any).user;
+  const { groupId, userId } = req.params;
+
+  if (!currentUser.id) {
+    return res.status(403).json({ success: false, message: "Unauthorized" });
+  }
+  const result = await rejectJoinRequest(userId as string, groupId as string);
+  return res.status(200).json(result);
 };

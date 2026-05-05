@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Group } from "../../types";
-import { Search, Users, } from "lucide-react";
+import { Search, Users } from "lucide-react";
 import { useGroup } from "../../context/GroupContex";
 import { FaLock } from "react-icons/fa6";
 import { BsGlobeAmericasFill } from "react-icons/bs";
+import { useCurrentUser } from "../../context/CurrentUserContex";
 
 interface DiscoverGroupsProps {
   groups: Group[];
@@ -11,20 +12,32 @@ interface DiscoverGroupsProps {
 
 const DiscoverGroups: React.FC<DiscoverGroupsProps> = ({ groups }) => {
   const [search, setSearch] = useState("");
-  const { setActiveGroupId, setJoined, setActiveTab } = useGroup();
+  const { currentUser } = useCurrentUser();
+  const {
+    setActiveGroupId,
+    setJoined,
+    setActiveTab,
+    handleJoinRequest,
+    cancelJoinRequest,
+    requestLoadingId,
+  } = useGroup();
 
   const results = groups.filter(
     (g) =>
-      !g.joined && 
+      !g.joined &&
       (search === "" ||
         g.name.toLowerCase().includes(search.toLowerCase()) ||
         g.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()))),
   );
 
-  const handleJoin = (groupId: string) => {
-    setJoined(true, groupId);
-    setActiveGroupId(groupId);
-    setActiveTab("Posts");
+  const handleJoin = (group: Group) => {
+    if (group.isPublic) {
+      setJoined(true, group.id);
+      setActiveGroupId(group.id);
+      setActiveTab("Posts");
+    } else {
+      handleJoinRequest(group.id);
+    }
   };
 
   return (
@@ -61,7 +74,10 @@ const DiscoverGroups: React.FC<DiscoverGroupsProps> = ({ groups }) => {
                     {g.name}
                   </span>
                   {g.isPublic ? (
-                    <BsGlobeAmericasFill size={12} className="text-text-muted shrink-0" />
+                    <BsGlobeAmericasFill
+                      size={12}
+                      className="text-text-muted shrink-0"
+                    />
                   ) : (
                     <FaLock size={12} className="text-text-muted shrink-0" />
                   )}
@@ -85,12 +101,37 @@ const DiscoverGroups: React.FC<DiscoverGroupsProps> = ({ groups }) => {
                   </div>
                 </div>
               </div>
-              <button
-                onClick={() => handleJoin(g.id)}
-                className="shrink-0 px-3 py-1.5 rounded-md text-[11px] font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
-              >
-                Join
-              </button>
+              {g.isPublic ? (
+                <button
+                  onClick={() => handleJoin(g)}
+                  className="shrink-0 px-3 py-1.5 rounded-md text-[11px] font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                >
+                  Join
+                </button>
+              ) : (
+                <div
+                  className={`${g.requestStatus === "pending" && "border-2 rounded-md border-orange-500 hover:border-orange-300"}`}
+                >
+                  <button
+                    onClick={() => {
+                      if (g.requestStatus === "pending") {
+                        cancelJoinRequest(g.id, currentUser?.id as string);
+                      } else {
+                        handleJoin(g);
+                      }
+                    }}
+                    className={`${g.requestStatus === "pending" ? "text-orange-500 hover:text-orange-300" : "bg-orange-500 text-white hover:bg-orange-600 transition-colors"} shrink-0 px-3 py-1.5 rounded-md text-[11px] font-bold`}
+                  >
+                    {g.requestStatus === "pending"
+                      ? requestLoadingId === g.id
+                        ? "Canceling . . ."
+                        : "Cancel request?"
+                      : requestLoadingId === g.id
+                        ? "Requesting . . ."
+                        : "Request"}
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -1,6 +1,13 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Post } from "../../types";
-import { Menu, School, SlidersHorizontal, User, Users } from "lucide-react";
+import {
+  Menu,
+  School,
+  SlidersHorizontal,
+  User,
+  Users,
+  LogOut,
+} from "lucide-react";
 import { useGroup } from "../../context/GroupContex";
 import { usePosts } from "../../context/PostContext";
 import GroupChat from "./GroupChat";
@@ -14,8 +21,7 @@ import DiscoverGroups from "./DiscoverGroup";
 import { FaLock } from "react-icons/fa6";
 import { BsGlobeAmericasFill } from "react-icons/bs";
 import { GroupConversation } from "../../types";
-
-const TABS = ["Posts", "Chats", "Members", "Discover"];
+import GroupRequests from "./GroupRequests";
 
 const GroupStudyPage: React.FC = () => {
   const {
@@ -25,9 +31,10 @@ const GroupStudyPage: React.FC = () => {
     activeTab,
     setActiveTab,
     onlineMembers,
-    joined,
     setJoined,
     groups,
+    fetchJoinRequests,
+    joinRequests,
   } = useGroup();
   const {
     setShowCreatePost,
@@ -36,74 +43,28 @@ const GroupStudyPage: React.FC = () => {
     getGroupPosts,
     getGroupPostsById,
   } = usePosts();
-  const { groupConversations, setGroupConversations, socket } = useMessages();
+
+  const { setGroupConversations, socket } = useMessages();
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
   const [groupMessages, setGroupMessages] = useState<any[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [groupUnread, setGroupUnread] = useState<Record<string, number>>({});
-
   const joinedGroups = groups.filter((g) => g.joined);
   const hasJoined = joinedGroups.length > 0;
 
-  useEffect(() => {
-    const handleGroupMessage = (newMessage: any) => {
-      if (newMessage.groupId === activeGroupId) {
-        setGroupMessages((prev) => {
-          const exists = prev.some((msg) => msg.id === newMessage.id);
-          if (exists) return prev;
-          return [...prev, newMessage];
-        });
-      } else {
-        setGroupUnread((prev) => ({
-          ...prev,
-          [newMessage.groupId]: (prev[newMessage.groupId] || 0) + 1,
-        }));
-      }
-    };
+  const TABS = ["Posts", "Chats", "Members", "Discover"];
+  if (!activeGroup?.isPublic) {
+    TABS.push("Join Requests");
+  }
 
-    socket.on("receive_group_message", handleGroupMessage);
-    return () => {
-      socket.off("receive_group_message", handleGroupMessage);
-    };
-  }, [socket, activeGroupId]);
-
-  useEffect(() => {
-    const fetchMessages = async () => {
-      if (!activeGroupId) return;
-      try {
-        const response = await api.get(`/group/messages/get/${activeGroupId}`);
-        const data = response.data;
-
-        if (data.success) {
-          setGroupConversations((prev) => [
-            ...prev.filter((c) => c.id !== activeGroupId),
-            {
-              id: activeGroupId,
-              messages: data.data || [],
-              title: activeGroup?.name || "",
-              avatar: activeGroup?.emoji || "",
-              participants: activeGroup?.members || [],
-              isGroup: true,
-              adminId:
-                activeGroup?.members.find((m) => m.isAdmin)?.user.id ??
-                activeGroupId,
-              lastMessage: "",
-              lastTime: "",
-              unread: 0,
-            } as GroupConversation,
-          ]);
-        }
-      } catch (error) {
-        console.error("Failed to fetch messages:", error);
-      }
-    };
-
-    if (activeGroupId) {
-      fetchMessages();
-    }
-  }, [activeGroupId, activeGroup, setGroupConversations]);
+  const handleGroupSelect = async (groupId: string) => {
+    setActiveGroupId(groupId);
+    await fetchJoinRequests(groupId);
+    await fetchGroupMessages(groupId);
+    getGroupPosts(groupId);
+  };
 
   const handleTagClick = (tag: string) =>
     setActiveTag((prev) => (prev === tag || tag === "" ? null : tag));
@@ -119,28 +80,29 @@ const GroupStudyPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (activeGroupId) {
-      getGroupPosts(activeGroupId);
-    }
-  }, [activeGroupId, getGroupPosts]);
-
-  useEffect(() => {
-    if (activeTab === "Chats" && activeGroupId) {
-      fetchGroupMessages(activeGroupId);
-      setGroupUnread((prev) => ({
-        ...prev,
-        [activeGroupId]: 0,
-      }));
-    }
-  }, [activeTab, activeGroupId]);
-
   const fetchGroupMessages = async (groupId: string) => {
     setLoadingMessages(true);
     try {
       const response = await api.get(`/group/messages/get/${groupId}`);
       const data = response.data;
       setGroupMessages(data.success ? data.data : []);
+
+      setGroupConversations((prev) => [
+        ...prev.filter((c) => c.id !== groupId),
+        {
+          id: groupId,
+          messages: data.data || [],
+          title: activeGroup?.name || "",
+          avatar: activeGroup?.emoji || "",
+          participants: activeGroup?.members || [],
+          isGroup: true,
+          adminId:
+            activeGroup?.members.find((m) => m.isAdmin)?.user.id ?? groupId,
+          lastMessage: "",
+          lastTime: "",
+          unread: 0,
+        } as GroupConversation,
+      ]);
     } catch (error) {
       console.error("Failed to fetch group messages:", error);
     } finally {
@@ -148,131 +110,165 @@ const GroupStudyPage: React.FC = () => {
     }
   };
 
-  const filtered = getGroupPostsById(activeGroupId).filter((p) => {
+  const handleChatTab = () => {
+    setActiveTab("Chats");
+    setGroupUnread((prev) => ({
+      ...prev,
+      [activeGroupId]: 0,
+    }));
+  };
+
+  const handleGroupMessage = (newMessage: any) => {
+    if (newMessage.groupId === activeGroupId) {
+      setGroupMessages((prev) => {
+        const exists = prev.some((msg) => msg.id === newMessage.id);
+        return exists ? prev : [...prev, newMessage];
+      });
+    } else {
+      setGroupUnread((prev) => ({
+        ...prev,
+        [newMessage.groupId]: (prev[newMessage.groupId] || 0) + 1,
+      }));
+    }
+  };
+
+  const filtered = getGroupPostsById(activeGroupId).filter((p: Post) => {
     const matchSearch =
       searchQuery === "" ||
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+      p.tags.some((t: string) =>
+        t.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
     const matchTag = !activeTag || p.tags.includes(activeTag);
     return matchSearch && matchTag;
   });
+
+  const totalUnreadChats = Object.values(groupUnread).reduce(
+    (sum, count) => sum + count,
+    0,
+  );
+
+  useEffect(() => {
+    socket.on("receive_group_message", handleGroupMessage);
+    return () => {
+      socket.off("receive_group_message", handleGroupMessage);
+    };
+  }, [socket, activeGroupId]);
 
   return (
     <div className="flex h-[calc(100vh-60px)] pl-1 overflow-hidden fixed inset-0 mt-[120px] md:relative md:mt-0">
       <GroupLeftSidebar
         activeGroupId={activeGroupId}
-        onGroupSelect={setActiveGroupId}
+        onGroupSelect={handleGroupSelect}
         isOpen={leftOpen}
         onClose={() => setLeftOpen(false)}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
-        <div className="flex-shrink-0 px-3 sm:px-5 pt-2 sm:pt-3 bg-base">
-          <div className="flex justify-between items-center gap-2 lg:hidden mb-2">
+        <div className="flex-shrink-0 bg-base border-b border-border">
+          <div className="flex justify-between items-center gap-2 lg:hidden px-3 py-3">
             <button
               onClick={() => setLeftOpen(true)}
-              className="p-2 rounded-md bg-white/5 border border-white/10 text-slate-400"
+              className="p-2 rounded-md hover:bg-base-hover transition-colors text-text-muted"
             >
-              <Menu size={15} />
+              <Menu size={16} />
             </button>
-            <span className="text-sm flex gap-1 items-center font-bold text-slate-300 truncate">
-              <Users size={15} /> Groups
+            <span className="text-xs font-bold text-text-primary truncate">
+              Groups
             </span>
             <button
               onClick={() => setRightOpen(true)}
-              className="p-2 rounded-md bg-white/5 border border-white/10 text-slate-400"
+              className="p-2 rounded-md hover:bg-base-hover transition-colors text-text-muted"
             >
-              <SlidersHorizontal size={15} />
+              <SlidersHorizontal size={16} />
             </button>
           </div>
 
-          {hasJoined ? (
-            <div className="relative rounded-lg border border-white/[0.08] bg-gradient-to-br from-blue-500/20 to-orange-500/10 p-3 sm:p-4 mb-2 sm:mb-3 overflow-hidden">
-              <div className="flex items-start gap-3 sm:gap-4">
-                <div className="flex items-center justify-center text-[30px] md:text-[40px] shadow-lg">
-                  {activeGroup?.emoji}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <div className="flex gap-2 items-center">
-                      <h1 className="text-[15px] md:text-[17px] font-extrabold text-slate-100 truncate">
-                        {activeGroup?.name}
+          {hasJoined && activeGroup && (
+            <div className="px-3 sm:px-5 py-4">
+              <div className="relative rounded-lg border flex border-white/[0.08] bg-gradient-to-br from-blue-500/20 to-orange-500/10 p-3 sm:p-4 mb-2 sm:mb-3 overflow-hidden">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="text-3xl">{activeGroup.emoji}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h1 className="text-sm font-bold text-text-primary truncate">
+                        {activeGroup.name}
                       </h1>
-                      {activeGroup?.isPublic ? (
-                        <BsGlobeAmericasFill />
+                      {activeGroup.isPublic ? (
+                        <div className="flex items-center gap-1 text-text-muted shrink-0">
+                          <BsGlobeAmericasFill size={11} />
+                          <span className="text-[10px]">public</span>
+                        </div>
                       ) : (
-                        <div className="text-[13px] md:text-[15px]">
-                          <FaLock />
+                        <div className="flex items-center gap-1 text-text-muted shrink-0">
+                          <FaLock size={11} />
+                          <span className="text-[10px]">private</span>
                         </div>
                       )}
                     </div>
-                    <div className="flex gap-1.5 flex-shrink-0">
-                      <button
-                        onClick={handleLeave}
-                        className="px-3 py-1.5 rounded-md text-[10px] md:text-[13px] font-bold bg-red-700 text-white hover:bg-red-800 transition-colors"
-                      >
-                        LEAVE
-                      </button>
+                    <div className="flex items-center gap-3 text-[11px] text-text-muted">
+                      <span className="flex items-center gap-1">
+                        <User size={11} />
+                        {activeGroup.members.length}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <School size={11} />
+                        {activeGroup.university}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 text-[12px] text-slate-500">
-                    <span className="flex items-center gap-1">
-                      <User size={12} /> {activeGroup?.members.length}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <School size={12} /> {activeGroup?.university}
-                    </span>
-                  </div>
                 </div>
+                <button
+                  onClick={handleLeave}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold transition-colors shrink-0"
+                >
+                  <LogOut size={13} />
+                  Leave
+                </button>
               </div>
-            </div>
-          ) : (
-            <div className="rounded-md border border-white/[0.08] bg-gradient-to-br from-blue-500/10 to-orange-500/5 p-4 mb-2 sm:mb-3 flex items-center gap-4">
-              <div className="text-3xl">🧭</div>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-sm font-extrabold text-slate-300">
-                  Find your study group
-                </h1>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Join a group or create one to get started
-                </p>
+
+              <div className="flex gap-0.5 border-b border-border -mx-3 sm:-mx-5 px-3 sm:px-5">
+                {TABS.map((tab) => {
+                  const unreadCount = tab === "Chats" ? totalUnreadChats : 0;
+
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() =>
+                        tab === "Chats" ? handleChatTab() : setActiveTab(tab)
+                      }
+                      className={`px-4 py-3 text-xs font-medium border-b-2 transition-colors relative ${
+                        activeTab === tab
+                          ? "text-brand border-brand"
+                          : "text-text-muted border-transparent hover:text-text-primary"
+                      }`}
+                    >
+                      {tab}
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-              <span className="shrink-0 px-3 py-1.5 rounded-md text-[11px] font-bold border border-orange-500 text-orange-500">
-                Discover
-              </span>
             </div>
           )}
 
-          {hasJoined && (
-            <div className="flex gap-1 border-b border-white/[0.07]">
-              {TABS.map((tab) => {
-                const totalUnread =
-                  tab === "Chats"
-                    ? Object.values(groupUnread).reduce(
-                        (sum, count) => sum + count,
-                        0
-                      )
-                    : 0;
-
-                return (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-4 py-2 text-[11px] md:text-[14px] border-b-2 transition-all relative ${
-                      activeTab === tab
-                        ? "border-orange-500 text-orange-400 font-bold"
-                        : "border-transparent text-slate-500"
-                    }`}
-                  >
-                    {tab}
-                    {totalUnread > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                        {totalUnread}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+          {!hasJoined && (
+            <div className="px-3 sm:px-5 py-6">
+              <div className="flex items-center gap-4">
+                <div className="text-4xl">🧭</div>
+                <div className="flex-1">
+                  <h2 className="text-sm font-bold text-text-primary mb-1">
+                    Find your study group
+                  </h2>
+                  <p className="text-[11px] text-text-muted">
+                    Join a group or create one to get started
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -311,6 +307,13 @@ const GroupStudyPage: React.FC = () => {
               }}
             />
           )}
+
+          {hasJoined && activeTab === "Join Requests" && (
+            <div className="absolute inset-0 overflow-y-auto p-3 sm:p-5 overscroll-contain">
+              <GroupRequests />
+            </div>
+          )}
+
           {hasJoined && activeTab === "Members" && (
             <div className="absolute inset-0 overflow-y-auto p-3 sm:p-5 overscroll-contain">
               <GroupMembers members={activeGroup?.members ?? []} />
