@@ -15,6 +15,22 @@ function GroupRequests() {
   const { setActivePage } = usePage();
   const { getUserData, setPostUserProfileId } = usePosts();
 
+  if (joinRequests.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="text-4xl mb-3">✓</div>
+          <p className="text-sm font-semibold text-text-primary mb-1">
+            No join requests yet
+          </p>
+          <p className="text-xs text-text-muted">
+            All pending requests have been resolved
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 overflow-y-auto pb-10">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 px-5 py-5">

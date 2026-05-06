@@ -22,7 +22,7 @@ function GroupMembers({ members }: GroupMemberProps) {
 
   return (
     <div className="flex-1 overflow-y-auto pb-10">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 px-5 py-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-3 px-0 sm:px-5 py-0 sm:py-5">
         {members.map((m) => (
           <div
             key={m.user.id}

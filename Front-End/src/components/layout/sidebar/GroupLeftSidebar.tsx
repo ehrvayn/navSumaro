@@ -21,7 +21,7 @@ function GroupLeftSidebar({
   const joined = groups.filter((g: Group) => g.joined === true);
 
   const content = (
-    <aside className="w-56 flex-shrink-0 h-full flex flex-col py-4 px-3 border-r border-border">
+    <aside className="w-56 flex-shrink-0 h-full md:mt-0 mt-16 flex flex-col py-4 px-3 border-r border-border">
       <button
         onClick={() => setShowCreateGroup(true)}
         className="w-full mb-6 px-4 py-2.5 rounded-md bg-brand text-white font-semibold text-xs flex items-center justify-center gap-2 hover:bg-orange-600 transition-all active:scale-95"

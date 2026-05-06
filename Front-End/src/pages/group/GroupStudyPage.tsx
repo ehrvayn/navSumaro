@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Post } from "../../types";
-import {
-  Menu,
-  School,
-  SlidersHorizontal,
-  User,
-  Users,
-  LogOut,
-} from "lucide-react";
+import { Menu, School, SlidersHorizontal, User, LogOut } from "lucide-react";
 import { useGroup } from "../../context/GroupContex";
 import { usePosts } from "../../context/PostContext";
 import GroupChat from "./GroupChat";
@@ -34,7 +27,6 @@ const GroupStudyPage: React.FC = () => {
     setJoined,
     groups,
     fetchJoinRequests,
-    joinRequests,
   } = useGroup();
   const {
     setShowCreatePost,
@@ -56,7 +48,7 @@ const GroupStudyPage: React.FC = () => {
 
   const TABS = ["Posts", "Chats", "Members", "Discover"];
   if (!activeGroup?.isPublic) {
-    TABS.push("Join Requests");
+    TABS.push("Requests");
   }
 
   const handleGroupSelect = async (groupId: string) => {
@@ -166,14 +158,14 @@ const GroupStudyPage: React.FC = () => {
 
       <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
         <div className="flex-shrink-0 bg-base border-b border-border">
-          <div className="flex justify-between items-center gap-2 lg:hidden px-3 py-3">
+          <div className="flex justify-between border-b border-white/5 items-center gap-2 lg:hidden px-3 py-3">
             <button
               onClick={() => setLeftOpen(true)}
               className="p-2 rounded-md hover:bg-base-hover transition-colors text-text-muted"
             >
               <Menu size={16} />
             </button>
-            <span className="text-xs font-bold text-text-primary truncate">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
               Groups
             </span>
             <button
@@ -185,34 +177,40 @@ const GroupStudyPage: React.FC = () => {
           </div>
 
           {hasJoined && activeGroup && (
-            <div className="px-3 sm:px-5 py-4">
-              <div className="relative rounded-lg border flex border-white/[0.08] bg-gradient-to-br from-blue-500/20 to-orange-500/10 p-3 sm:p-4 mb-2 sm:mb-3 overflow-hidden">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="text-3xl">{activeGroup.emoji}</div>
+            <div className="px-3 sm:px-5 pt-4">
+              <div className="relative rounded-lg border flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 border-white/[0.08] bg-gradient-to-br from-blue-500/20 to-orange-500/10 p-3 sm:p-4 mb-2 sm:mb-3 overflow-hidden">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <div className="text-2xl sm:text-3xl flex-shrink-0">
+                    {activeGroup.emoji}
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h1 className="text-sm font-bold text-text-primary truncate">
+                    <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
+                      <h1 className="text-xs sm:text-sm font-bold text-text-primary truncate">
                         {activeGroup.name}
                       </h1>
                       {activeGroup.isPublic ? (
-                        <div className="flex items-center gap-1 text-text-muted shrink-0">
-                          <BsGlobeAmericasFill size={11} />
-                          <span className="text-[10px]">public</span>
+                        <div className="flex items-center gap-1 text-text-muted flex-shrink-0">
+                          <BsGlobeAmericasFill size={10} />
+                          <span className="text-[9px] sm:text-[10px]">
+                            public
+                          </span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1 text-text-muted shrink-0">
-                          <FaLock size={11} />
-                          <span className="text-[10px]">private</span>
+                        <div className="flex items-center gap-1 text-text-muted flex-shrink-0">
+                          <FaLock size={10} />
+                          <span className="text-[9px] sm:text-[10px]">
+                            private
+                          </span>
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 text-[11px] text-text-muted">
+                    <div className="flex items-center gap-2 sm:gap-3 text-[9px] sm:text-[11px] text-text-muted flex-wrap">
                       <span className="flex items-center gap-1">
-                        <User size={11} />
+                        <User size={10} />
                         {activeGroup.members.length}
                       </span>
                       <span className="flex items-center gap-1">
-                        <School size={11} />
+                        <School size={10} />
                         {activeGroup.university}
                       </span>
                     </div>
@@ -220,36 +218,44 @@ const GroupStudyPage: React.FC = () => {
                 </div>
                 <button
                   onClick={handleLeave}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold transition-colors shrink-0"
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold transition-colors flex-shrink-0 w-full sm:w-auto"
                 >
                   <LogOut size={13} />
                   Leave
                 </button>
               </div>
 
-              <div className="flex gap-0.5 border-b border-border -mx-3 sm:-mx-5 px-3 sm:px-5">
+              <div className="flex gap-0.5 border border-border -mx-3 sm:-mx-5 px-3 sm:px-5 overflow-x-auto justify-between">
                 {TABS.map((tab) => {
                   const unreadCount = tab === "Chats" ? totalUnreadChats : 0;
 
                   return (
-                    <button
-                      key={tab}
-                      onClick={() =>
-                        tab === "Chats" ? handleChatTab() : setActiveTab(tab)
-                      }
-                      className={`px-4 py-3 text-xs font-medium border-b-2 transition-colors relative ${
+                    <div
+                      className={`${
                         activeTab === tab
-                          ? "text-brand border-brand"
-                          : "text-text-muted border-transparent hover:text-text-primary"
+                          ? "border-b-2 border-t-2 border-orange-500"
+                          : "border-b-2 border-t-2 border-orange-500/0"
                       }`}
                     >
-                      {tab}
-                      {unreadCount > 0 && (
-                        <span className="absolute -top-1 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                          {unreadCount}
-                        </span>
-                      )}
-                    </button>
+                      <button
+                        key={tab}
+                        onClick={() =>
+                          tab === "Chats" ? handleChatTab() : setActiveTab(tab)
+                        }
+                        className={`px-4 py-3 text-xs font-medium transition-colors relative ${
+                          activeTab === tab
+                            ? "text-brand border-orange-500"
+                            : "text-text-muted border-transparent hover:text-text-primary"
+                        }`}
+                      >
+                        {tab}
+                        {unreadCount > 0 && (
+                          <span className="absolute -top-1 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                            {unreadCount}
+                          </span>
+                        )}
+                      </button>
+                    </div>
                   );
                 })}
               </div>
@@ -308,7 +314,7 @@ const GroupStudyPage: React.FC = () => {
             />
           )}
 
-          {hasJoined && activeTab === "Join Requests" && (
+          {hasJoined && activeTab === "Requests" && (
             <div className="absolute inset-0 overflow-y-auto p-3 sm:p-5 overscroll-contain">
               <GroupRequests />
             </div>
