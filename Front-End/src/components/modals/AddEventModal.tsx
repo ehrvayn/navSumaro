@@ -9,6 +9,7 @@ import {
   Clock,
   AlignLeft,
   Type,
+  Calendar,
 } from "lucide-react";
 import { useEvent } from "../../context/EventContex";
 import { useCurrentUser } from "../../context/CurrentUserContex";
@@ -21,6 +22,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
+  const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [color, setColor] = useState("#f97316");
@@ -43,17 +45,20 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
   }, [activePage, onClose]);
 
   const handleCreate = async () => {
-    if (!title.trim() || !startTime || !currentUser?.id) return;
+    if (!title.trim() || !date || !startTime || !currentUser?.id) return;
 
     setLoading(true);
 
     try {
-      const date = new Date(startTime);
-      const monthName = date.toLocaleString("default", { month: "long" });
-      const day = date.getDate();
+      const selectedDate = new Date(date);
+      const monthName = selectedDate.toLocaleString("default", {
+        month: "long",
+      });
+      const day = selectedDate.getDate();
 
-      const timeToAmPm = (time: string) => {
-        const [hours, minutes] = time.split(":");
+      const formatToAmPm = (timeStr: string) => {
+        if (!timeStr) return undefined;
+        const [hours, minutes] = timeStr.split(":");
         const hour = parseInt(hours);
         const ampm = hour >= 12 ? "PM" : "AM";
         const displayHour = hour % 12 || 12;
@@ -65,15 +70,18 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
         description,
         location,
         month: monthName,
-        day,
-        startTime: timeToAmPm(startTime.split("T")[1]),
-        endTime: endTime ? timeToAmPm(endTime.split("T")[1]) : undefined,
+        day: day,
+        startTime: formatToAmPm(startTime),
+        endTime: formatToAmPm(endTime),
         color,
       };
 
-      const response = await api.post(`/org/event/create/${currentUser.id}`, eventData);
-
+      const response = await api.post(
+        `/org/event/create/${currentUser.id}`,
+        eventData,
+      );
       const result = response.data;
+
       if (result.success) {
         handleCreateEvent({
           ...result.data,
@@ -116,11 +124,11 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
         <div className="flex justify-between items-center px-5 sm:px-7 py-5 border-b border-border sticky top-0 bg-base-elevated z-10">
           <div className="flex items-center gap-3">
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-200"
+              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
               style={{ backgroundColor: color + "22" }}
             >
               <div
-                className="w-3 h-3 rounded-full transition-colors duration-200"
+                className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: color }}
               />
             </div>
@@ -137,8 +145,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
             onClick={onClose}
             className="p-1.5 text-text-muted md:text-[13px] text-[11px] items-center flex gap-1 hover:text-text-primary hover:bg-base-hover rounded-lg transition-colors"
           >
-            Back
-            <ArrowRight size={16} />
+            Back <ArrowRight size={16} />
           </button>
         </div>
 
@@ -163,16 +170,13 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
               <AlignLeft size={11} className="text-text-muted" />
               <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">
                 Description{" "}
-                <span className="normal-case tracking-normal font-normal opacity-50">
-                  — optional
-                </span>
               </span>
             </div>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="What's this event about?"
-              rows={4}
+              rows={3}
               className="input-base resize-none"
             />
           </div>
@@ -182,9 +186,6 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
               <MapPin size={11} className="text-text-muted" />
               <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">
                 Location{" "}
-                <span className="normal-case tracking-normal font-normal opacity-50">
-                  — optional
-                </span>
               </span>
             </div>
             <input
@@ -195,6 +196,25 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
             />
           </div>
 
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-1.5">
+              <Calendar size={11} className="text-text-muted" />
+              <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">
+                Event Date
+              </span>
+            </div>
+            <div className="relative group cursor-pointer">
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="input-base px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 appearance-none bg-base-surface w-full h-full cursor-pointer"
+                style={{ colorScheme: "dark" }}
+                onClick={(e) => (e.target as any).showPicker?.()}
+              />
+            </div>
+          </div>
+
           <div className="flex gap-4 items-start">
             <div className="flex flex-1 flex-col gap-1.5">
               <div className="flex items-center gap-1.5">
@@ -203,29 +223,34 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
                   Start Time
                 </span>
               </div>
-              <input
-                type="datetime-local"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="input-base"
-              />
+              <div className="relative cursor-pointer">
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="input-base px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 appearance-none bg-base-surface w-full h-full cursor-pointer"
+                  style={{ colorScheme: "dark" }}
+                  onClick={(e) => (e.target as any).showPicker?.()}
+                />
+              </div>
             </div>
             <div className="flex flex-1 flex-col gap-1.5">
               <div className="flex items-center gap-1.5">
-                <Clock size={11} className="text-text-muted opacity-50" />
+                <Clock size={11} className="opacity-50" />
                 <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">
                   End Time{" "}
-                  <span className="normal-case tracking-normal font-normal opacity-50">
-                    — optional
-                  </span>
                 </span>
               </div>
-              <input
-                type="datetime-local"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="input-base"
-              />
+              <div className="relative cursor-pointer">
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="input-base px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 appearance-none bg-base-surface w-full h-full cursor-pointer"
+                  style={{ colorScheme: "dark" }}
+                  onClick={(e) => (e.target as any).showPicker?.()}
+                />
+              </div>
             </div>
           </div>
 
@@ -238,22 +263,13 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
                 <button
                   key={c.hex}
                   onClick={() => setColor(c.hex)}
-                  title={c.label}
-                  className={`w-7 h-7 rounded-full transition-all duration-150 ${
-                    color === c.hex
-                      ? "ring-2 ring-offset-2 ring-offset-base-surface scale-110"
-                      : "opacity-50 hover:opacity-90 hover:scale-105"
-                  }`}
-                  style={{
-                    backgroundColor: c.hex,
-                    outline: color === c.hex ? `2px solid ${c.hex}` : "none",
-                    outlineOffset: "2px",
-                  }}
+                  className={`w-7 h-7 rounded-full transition-all ${color === c.hex ? "ring-2 ring-offset-2 ring-offset-base-surface scale-110" : "opacity-50 hover:opacity-90"}`}
+                  style={{ backgroundColor: c.hex }}
                 />
               ))}
               <div className="ml-auto flex items-center gap-2">
                 <div
-                  className="w-4 h-4 rounded-full transition-colors duration-200"
+                  className="w-4 h-4 rounded-full"
                   style={{ backgroundColor: color }}
                 />
                 <span className="text-[11px] text-text-muted font-mono">
@@ -270,7 +286,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ onClose }) => {
           </Button>
           <Button
             onClick={handleCreate}
-            disabled={!title.trim() || !startTime || loading}
+            disabled={!title.trim() || !date || !startTime || loading}
           >
             <span className="flex items-center gap-1.5">
               <Rocket size={14} />

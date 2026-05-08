@@ -111,6 +111,8 @@ export interface Event {
   description?: string;
   location?: string;
   startTime: string;
+  endDay?: number;
+  endMonth?: string;
   endTime?: string;
   createdAt: string;
 }

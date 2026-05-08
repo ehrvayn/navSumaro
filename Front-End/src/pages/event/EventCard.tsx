@@ -30,7 +30,7 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
     "November",
     "December",
   ].indexOf(event.month);
-  const d = new Date(2026, monthIndex, event.day);
+  const startDate = new Date(2026, monthIndex, event.day);
   const month = event.month.slice(0, 3).toUpperCase();
   const [viewDetails, setViewDetails] = useState(false);
 
@@ -58,7 +58,7 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
           className="text-lg sm:text-2xl font-black leading-none"
           style={{ color: event.color }}
         >
-          {d.getDate()}
+          {startDate.getDate()}
         </span>
       </div>
 
@@ -120,14 +120,14 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
           <div className="flex items-center gap-1.5 text-[11px] font-medium text-text-muted">
             <Clock size={13} className="text-brand" />
             <span>
-              {d.toLocaleDateString("default", {
+              {startDate.toLocaleDateString("default", {
                 month: "short",
                 day: "numeric",
               })}
-              {" · "}
+              <span className="text-[15px]"> | </span>
               {event.startTime}
-              <span className="text-lg"> | </span>
-              {event.endTime && event.endTime}
+              {" "}-{" "}
+              {event.endTime}
             </span>
           </div>
           {event.location && (

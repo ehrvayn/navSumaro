@@ -33,10 +33,11 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="relative h-[calc(100vh-60px)] pl-1 overflow-hidden">
+      
       <div className="flex items-center justify-between py-2 pl-2 pr-3 lg:hidden border-b border-white/5">
         <button
           onClick={() => setLeftOpen(true)}
-          className="p-2 rounded-md bg-white/5 border border-white/10 text-slate-400 hover:bg-white/10 transition-all"
+          className="p-2 rounded-md border border-white/10 text-slate-400 hover:bg-white/10 transition-all"
         >
           <Menu size={15} />
         </button>
@@ -49,7 +50,7 @@ const HomePage: React.FC = () => {
         </span>
         <button
           onClick={() => setRightOpen(true)}
-          className="p-2 rounded-md bg-white/5 border border-white/10 text-slate-400 hover:bg-white/10 transition-all"
+          className="p-2 rounded-md border border-white/10 text-slate-400 hover:bg-white/10 transition-all"
         >
           <SlidersHorizontal size={15} />
         </button>

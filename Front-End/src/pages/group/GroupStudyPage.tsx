@@ -158,9 +158,10 @@ const GroupStudyPage: React.FC = () => {
 
       <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
         <div className="flex-shrink-0 bg-base border-b border-border">
-          <div className="flex justify-between border-b border-white/5 items-center gap-2 lg:hidden px-3 py-3">
+
+          <div className="flex justify-between border-b  border-white/5 items-center gap-2 lg:hidden px-3 py-3">
             <button
-              onClick={() => setLeftOpen(true)}
+              onClick={() => setLeftOpen(!leftOpen)}
               className="p-2 rounded-md hover:bg-base-hover transition-colors text-text-muted"
             >
               <Menu size={16} />
@@ -169,7 +170,7 @@ const GroupStudyPage: React.FC = () => {
               Groups
             </span>
             <button
-              onClick={() => setRightOpen(true)}
+              onClick={() => setRightOpen(!rightOpen)}
               className="p-2 rounded-md hover:bg-base-hover transition-colors text-text-muted"
             >
               <SlidersHorizontal size={16} />
@@ -225,39 +226,43 @@ const GroupStudyPage: React.FC = () => {
                 </button>
               </div>
 
-              <div className="flex gap-0.5 border border-border -mx-3 sm:-mx-5 px-3 sm:px-5 overflow-x-auto justify-between">
-                {TABS.map((tab) => {
-                  const unreadCount = tab === "Chats" ? totalUnreadChats : 0;
+              <div className="flex sm:justify-center border border-border -mr-2 -ml-3 sm:-ml-5 sm:-mr-4 lg:-mr-5 px-3 sm:px-5 overflow-x-auto">
+                <div className="flex sm:gap-16">
+                  {TABS.map((tab) => {
+                    const unreadCount = tab === "Chats" ? totalUnreadChats : 0;
 
-                  return (
-                    <div
-                      className={`${
-                        activeTab === tab
-                          ? "border-b-2 border-t-2 border-orange-500"
-                          : "border-b-2 border-t-2 border-orange-500/0"
-                      }`}
-                    >
-                      <button
-                        key={tab}
-                        onClick={() =>
-                          tab === "Chats" ? handleChatTab() : setActiveTab(tab)
-                        }
-                        className={`px-4 py-3 text-xs font-medium transition-colors relative ${
+                    return (
+                      <div
+                        className={`${
                           activeTab === tab
-                            ? "text-brand border-orange-500"
-                            : "text-text-muted border-transparent hover:text-text-primary"
+                            ? "border-b-2 border-t-2 border-orange-500"
+                            : "border-b-2 border-t-2 border-orange-500/0"
                         }`}
                       >
-                        {tab}
-                        {unreadCount > 0 && (
-                          <span className="absolute -top-1 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                            {unreadCount}
-                          </span>
-                        )}
-                      </button>
-                    </div>
-                  );
-                })}
+                        <button
+                          key={tab}
+                          onClick={() =>
+                            tab === "Chats"
+                              ? handleChatTab()
+                              : setActiveTab(tab)
+                          }
+                          className={`px-4 py-3 text-xs font-medium transition-colors relative ${
+                            activeTab === tab
+                              ? "text-brand border-orange-500"
+                              : "text-text-muted border-transparent hover:text-text-primary"
+                          }`}
+                        >
+                          {tab}
+                          {unreadCount > 0 && (
+                            <span className="absolute -top-1 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                              {unreadCount}
+                            </span>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}

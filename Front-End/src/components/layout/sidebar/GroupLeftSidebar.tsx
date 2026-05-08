@@ -80,7 +80,7 @@ function GroupLeftSidebar({
         <div className="fixed inset-0 z-40 lg:hidden" onClick={onClose}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div
-            className="absolute top-0 left-0 h-full w-64 bg-base-elevated border-r border-border z-50 flex flex-col overflow-hidden"
+            className="absolute top-0 left-0 h-full bg-base-elevated border-r border-border z-50 flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-4 pt-4 pb-3 flex-shrink-0 border-b border-border">

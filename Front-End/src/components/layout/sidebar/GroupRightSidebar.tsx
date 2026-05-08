@@ -114,23 +114,12 @@ function GroupRightSidebar({
       </aside>
 
       {isOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden" onClick={onClose}>
+        <div className="fixed inset-0 z-40 mt-28 lg:hidden" onClick={onClose}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div
             className="absolute top-0 right-0 h-full w-72 bg-base border-l border-border shadow-2xl z-50 flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-4 pt-5 pb-2 flex-shrink-0">
-              <span className="text-xs font-bold text-text-muted uppercase tracking-widest">
-                Info
-              </span>
-              <button
-                onClick={onClose}
-                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-base-hover transition-all"
-              >
-                <X size={15} />
-              </button>
-            </div>
             <div className="overflow-y-auto flex-1 px-4 py-5">
               <div className="mb-8">
                 <SectionHeader
